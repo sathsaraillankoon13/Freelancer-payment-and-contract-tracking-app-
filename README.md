@@ -8,11 +8,58 @@
 ---
 
 ## 📌 Component Overview
-This branch contains the official implementation of the **Client & Project Management** component for the ISAACIFY mobile application. It delivers comprehensive project lifecycle management, client directory administration, multi-tab project analytics, real-time messaging, and assigned Jira user stories (**SCRUM-57**, **SCRUM-58**, **SCRUM-59**, **SCRUM-60**).
+This branch contains the official implementation of the **Client & Project Management** component for the ISAACIFY mobile application. It delivers comprehensive project lifecycle management, client directory administration, multi-tab project analytics, real-time messaging, and assigned Jira user stories (**SCRUM-12**, **SCRUM-13**, **SCRUM-14**, **SCRUM-15**, **SCRUM-57**, **SCRUM-58**, **SCRUM-59**, **SCRUM-60**).
 
 ---
 
 ## 🚀 Assigned Jira User Stories & Implementation Details
+
+### 🔹 SCRUM-12: Implement Welcome & Account Type Screen
+* **Source Files:**
+  * `src/features/auth/screens/AccountTypeScreen.tsx`
+  * `src/app/auth/account-type.tsx`
+  * `src/features/onboarding/screens/OnboardingScreen.tsx`
+  * `src/app/onboarding.tsx`
+  * `src/features/auth/screens/SplashScreen.tsx`
+  * `src/app/index.tsx`
+* **Key Features:**
+  * Welcome and interactive role selection interface (Individual Freelancer vs. Freelancer Company / Agency Lead vs. Client).
+  * 3-slide visual onboarding carousel with skip controls and step indicators.
+  * Seamless navigation to sign in and registration.
+
+---
+
+### 🔹 SCRUM-13: Implement Login Screen
+* **Source Files:**
+  * `src/features/auth/screens/LoginScreen.tsx`
+  * `src/app/auth/login.tsx`
+* **Key Features:**
+  * Modern authentication portal with email/password input validation.
+  * **⚡ Quick Login Presets** (Freelancer, Company, Client) for rapid role switching and evaluation.
+  * Direct links to password recovery and new user registration.
+
+---
+
+### 🔹 SCRUM-14: Implement Create Account & Setup Screen
+* **Source Files:**
+  * `src/features/auth/screens/RegisterScreen.tsx`
+  * `src/app/auth/register.tsx`
+* **Key Features:**
+  * Comprehensive registration and workspace initialization form.
+  * Full name, workspace name, email, and password configuration with real-time validation checks.
+  * Automatic role assignment based on selected account type.
+
+---
+
+### 🔹 SCRUM-15: Implement Email Verification Screen
+* **Source Files:**
+  * `src/features/auth/screens/EmailVerificationScreen.tsx`
+  * `src/app/auth/email-verification.tsx`
+* **Key Features:**
+  * 6-digit numeric OTP verification code input with auto-advance and countdown resend timer.
+  * Email confirmation feedback and instant routing upon successful verification.
+
+---
 
 ### 🔹 SCRUM-57: Implement My Projects Screen
 * **Source Files:**
@@ -84,15 +131,9 @@ This branch contains the official implementation of the **Client & Project Manag
   * `src/app/messages.tsx`
   * `src/features/messages/components/MessagesThreadModal.tsx`
 * **Key Features:**
-  * Conversation list with unread counter badges and recent message snippets.
-  * Interactive messaging thread with timestamps, delivery status, and file attachment sharing.
-
-### 📄 3. Team & Workspace Administration
-* **Source Files:**
-  * `src/features/settings/components/TeamManagementModal.tsx`
-* **Key Features:**
-  * Team member roster administration with role-based permissions (*Owner*, *Admin*, *Collaborator*).
-  * Member invitations with role assignment and access controls.
+  * Dedicated two-way chat conversation thread modal between Freelancer/Agency and Client.
+  * Message history with formatted timestamps and sender role badges.
+  * Real-time sync with Cloud Firestore (`messages` collection).
 
 ---
 
@@ -103,36 +144,26 @@ This branch contains the official implementation of the **Client & Project Manag
 ├── push_to_github.bat                                 # One-click push script
 └── src/
     ├── app/
+    │   ├── index.tsx                                  # Splash screen route
+    │   ├── onboarding.tsx                             # Onboarding route
     │   ├── home.tsx                                   # Home dashboard route
     │   ├── projects.tsx                               # Projects directory route
     │   ├── clients.tsx                                # Clients directory route
-    │   └── messages.tsx                               # Messages inbox route
-    └── features/
-        ├── clients/
-        │   ├── components/
-        │   │   ├── AddClientModal.tsx                 # Add client modal
-        │   │   ├── ClientDetailsModal.tsx             # Client details & edit modal
-        │   │   └── ClientsDirectoryModal.tsx          # Client directory picker modal
-        │   └── screens/
-        │       └── ClientsScreen.tsx                  # Clients directory screen
-        ├── home/
-        │   ├── components/
-        │   │   ├── ClientHomeView.tsx                 # Client home portal view
-        │   │   └── FreelancerHomeView.tsx             # Freelancer home dashboard
-        │   └── screens/
-        │       └── HomeScreen.tsx                     # Main home container
-        ├── messages/
-        │   ├── components/
-        │   │   └── MessagesThreadModal.tsx            # Chat conversation thread
-        │   └── screens/
-        │       └── MessagesScreen.tsx                 # Messages inbox screen
-        ├── projects/
-        │   ├── components/
-        │   │   ├── CreateProjectModal.tsx             # Project creation modal
-        │   │   └── ProjectDetailsModal.tsx            # Multi-tab project details & delete flow
-        │   └── screens/
-        │       └── ProjectsScreen.tsx                 # Projects directory screen
-        └── settings/
-            └── components/
-                └── TeamManagementModal.tsx            # Team roster & permissions modal
+    │   ├── messages.tsx                               # Messages inbox route
+    │   └── auth/
+    │       ├── account-type.tsx                       # Role selection route
+    │       ├── login.tsx                              # Login route
+    │       ├── register.tsx                           # Registration route
+    │       ├── email-verification.tsx                 # OTP verification route
+    │       └── forgot-password.tsx                    # Password recovery route
+    ├── features/
+    │   ├── auth/screens/                              # Authentication screens
+    │   ├── clients/                                   # Clients directory & modals
+    │   ├── home/                                      # Client & Freelancer home dashboards
+    │   ├── messages/                                  # Chat messaging screens & modals
+    │   ├── projects/                                  # Projects catalog & details modal
+    │   └── settings/components/                       # Team management modal
+    └── services/
+        ├── firebase.ts                                # Cloud Firestore initialization
+        └── firebaseService.ts                         # Real-time Firestore sync listeners
 ```
