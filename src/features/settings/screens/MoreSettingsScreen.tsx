@@ -33,6 +33,7 @@ export const MoreSettingsScreen: React.FC = () => {
     openEditProfileModal,
     openRemindersModal,
     updateProfile,
+    switchRole,
     logout,
   } = useAppContext();
 
@@ -137,6 +138,78 @@ export const MoreSettingsScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
 
+        {/* 3-Way User Perspective Switcher */}
+        <View style={styles.roleSwitcherContainer}>
+          <Text style={styles.roleSwitcherTitle}>Switch User Perspective (Live 2-Way Sync)</Text>
+          <View style={styles.roleButtonsRow}>
+            <TouchableOpacity
+              style={[
+                styles.roleBtn,
+                currentUser?.role === 'freelancer' && styles.roleBtnActive,
+              ]}
+              onPress={() => switchRole('freelancer')}
+            >
+              <Feather
+                name="user"
+                size={13}
+                color={currentUser?.role === 'freelancer' ? colors.white : colors.textPrimary}
+              />
+              <Text
+                style={[
+                  styles.roleBtnText,
+                  currentUser?.role === 'freelancer' && styles.roleBtnTextActive,
+                ]}
+              >
+                Freelancer
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.roleBtn,
+                currentUser?.role === 'team' && styles.roleBtnActive,
+              ]}
+              onPress={() => switchRole('team')}
+            >
+              <Feather
+                name="briefcase"
+                size={13}
+                color={currentUser?.role === 'team' ? colors.white : colors.textPrimary}
+              />
+              <Text
+                style={[
+                  styles.roleBtnText,
+                  currentUser?.role === 'team' && styles.roleBtnTextActive,
+                ]}
+              >
+                Company
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.roleBtn,
+                currentUser?.role === 'client' && styles.roleBtnActive,
+              ]}
+              onPress={() => switchRole('client')}
+            >
+              <Feather
+                name="shield"
+                size={13}
+                color={currentUser?.role === 'client' ? colors.white : colors.textPrimary}
+              />
+              <Text
+                style={[
+                  styles.roleBtnText,
+                  currentUser?.role === 'client' && styles.roleBtnTextActive,
+                ]}
+              >
+                Client
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Quick Stats Grid */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
@@ -199,7 +272,7 @@ export const MoreSettingsScreen: React.FC = () => {
 
               {canManageFinances && (
                 <TouchableOpacity
-                  style={[styles.menuItem, { borderBottomWidth: 0 }]}
+                  style={styles.menuItem}
                   onPress={openCreateInvoiceModal}
                 >
                   <View style={styles.menuItemLeft}>
@@ -211,6 +284,102 @@ export const MoreSettingsScreen: React.FC = () => {
                   <Feather name="chevron-right" size={18} color={colors.textMuted} />
                 </TouchableOpacity>
               )}
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/tasks')}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#EDE7F6' }]}>
+                    <Feather name="check-square" size={18} color={colors.buttonPrimary} />
+                  </View>
+                  <View>
+                    <Text style={styles.menuItemText}>Tasks Management</Text>
+                    <Text style={styles.menuItemSub}>Task details, status updates & delete</Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/scope')}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#ECFDF5' }]}>
+                    <Feather name="target" size={18} color="#059669" />
+                  </View>
+                  <View>
+                    <Text style={styles.menuItemText}>Project Scope</Text>
+                    <Text style={styles.menuItemSub}>Deliverables baseline & change requests</Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/contract-terms')}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#F3EEFB' }]}>
+                    <Feather name="file-text" size={18} color={colors.buttonPrimary} />
+                  </View>
+                  <View>
+                    <Text style={styles.menuItemText}>Contract Terms & Clauses</Text>
+                    <Text style={styles.menuItemSub}>Edit & add clauses, penalties & IP</Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/contract-preview')}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#FEF3E8' }]}>
+                    <Feather name="eye" size={18} color="#D97706" />
+                  </View>
+                  <View>
+                    <Text style={styles.menuItemText}>Preview Legal Contract</Text>
+                    <Text style={styles.menuItemSub}>Formal service agreement document</Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/contract-review')}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#EDE9FE' }]}>
+                    <Feather name="edit-3" size={18} color={colors.buttonPrimary} />
+                  </View>
+                  <View>
+                    <Text style={styles.menuItemText}>Contract Review & Sign</Text>
+                    <Text style={styles.menuItemSub}>Review checklist & digital signature</Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.menuItem, { borderBottomWidth: 0 }]}
+                onPress={() => router.push('/onboarding')}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#F0FDF4' }]}>
+                    <Feather name="compass" size={18} color="#16A34A" />
+                  </View>
+                  <View>
+                    <Text style={styles.menuItemText}>Onboarding Walkthrough</Text>
+                    <Text style={styles.menuItemSub}>Explore intro slides & features</Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -256,7 +425,7 @@ export const MoreSettingsScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.menuItem, { borderBottomWidth: 0 }]}
+            style={styles.menuItem}
             onPress={openEditProfileModal}
           >
             <View style={styles.menuItemLeft}>
@@ -266,6 +435,27 @@ export const MoreSettingsScreen: React.FC = () => {
               <View>
                 <Text style={styles.menuItemText}>Profile & Business Details</Text>
                 <Text style={styles.menuItemSub}>Contact details, brand identity & logo</Text>
+              </View>
+            </View>
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderBottomWidth: 0 }]}
+            onPress={() =>
+              router.push({
+                pathname: '/auth/email-verification',
+                params: { email: currentUser?.email },
+              })
+            }
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconBox, { backgroundColor: '#F3EEFB' }]}>
+                <Feather name="shield" size={18} color={colors.buttonPrimary} />
+              </View>
+              <View>
+                <Text style={styles.menuItemText}>Email Verification (6 OTP Boxes)</Text>
+                <Text style={styles.menuItemSub}>Member 1 security & onboarding check</Text>
               </View>
             </View>
             <Feather name="chevron-right" size={18} color={colors.textMuted} />
@@ -434,6 +624,63 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: typography.fonts.medium,
     color: colors.buttonPrimary,
+  },
+  roleSwitcherContainer: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 14,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#EEE8F6',
+    shadowColor: '#493068',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  roleSwitcherTitle: {
+    fontSize: 12,
+    fontFamily: typography.fonts.bold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  roleButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  roleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+    backgroundColor: '#F7F5FA',
+    borderWidth: 1,
+    borderColor: '#EAE6F2',
+  },
+  roleBtnActive: {
+    backgroundColor: colors.buttonPrimary,
+    borderColor: colors.buttonPrimary,
+    shadowColor: colors.buttonPrimary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  roleBtnText: {
+    fontSize: 12,
+    fontFamily: typography.fonts.medium,
+    color: colors.textPrimary,
+  },
+  roleBtnTextActive: {
+    fontFamily: typography.fonts.bold,
+    color: colors.white,
   },
   statsRow: {
     flexDirection: 'row',

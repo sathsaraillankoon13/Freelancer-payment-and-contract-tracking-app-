@@ -292,7 +292,7 @@ export const FinanceScreen: React.FC = () => {
         {/* Quick Action Buttons (Only for providers) */}
         {!isClient && canManageFinances && (
           <View style={styles.actionButtonsRow}>
-            <TouchableOpacity gradient
+            <TouchableOpacity
               style={styles.createInvoiceBtn}
               onPress={openCreateInvoiceModal}
               activeOpacity={0.8}
@@ -426,7 +426,7 @@ export const FinanceScreen: React.FC = () => {
                 : 'Create your first invoice to bill clients and track payments.'}
             </Text>
             {!isClient && canManageFinances && (
-              <TouchableOpacity gradient
+              <TouchableOpacity
                 style={styles.emptyCreateBtn}
                 onPress={openCreateInvoiceModal}
                 activeOpacity={0.8}
@@ -574,7 +574,7 @@ export const FinanceScreen: React.FC = () => {
                 </TouchableOpacity>
                 {/* Client Action: Submit Payment */}
                 {isClient && !isDraft && inv.outstandingAmount > 0 && (
-                  <TouchableOpacity gradient
+                  <TouchableOpacity
                     style={styles.payProofBtn}
                     onPress={() => openSubmitPaymentModal(inv.id)}
                     activeOpacity={0.8}
@@ -594,8 +594,18 @@ export const FinanceScreen: React.FC = () => {
                           <Text style={styles.subAmount}>
                             {money(sub.amount, inv.currency)} ({sub.paymentMethod})
                           </Text>
-                          <Text style={styles.subRef}>Ref: {sub.referenceNumber}</Text>
-                          {sub.proofAttachment && <TouchableOpacity onPress={() => { void openAttachment(sub.proofAttachment).catch(error => Alert.alert('Receipt unavailable', error.message)); }}><Text style={styles.sectionActionText}>View receipt</Text></TouchableOpacity>}
+                          {(sub.attachment || sub.proofAttachment) && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                const file = sub.attachment || { uri: sub.proofAttachment!, name: 'Receipt.pdf' };
+                                void openAttachment(file).catch((error) =>
+                                  Alert.alert('Receipt unavailable', error.message)
+                                );
+                              }}
+                            >
+                              <Text style={styles.sectionActionText}>View receipt</Text>
+                            </TouchableOpacity>
+                          )}
                           {sub.proofNote ? (
                             <Text style={styles.subNote}>&quot;{sub.proofNote}&quot;</Text>
                           ) : null}

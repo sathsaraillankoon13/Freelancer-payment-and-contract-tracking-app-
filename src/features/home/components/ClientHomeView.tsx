@@ -7,7 +7,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -31,24 +32,20 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
     activeMeeting,
     deliverable,
     recentActivity,
+    openReviewDeliverableModal,
+    openMessagesThreadModal,
+    openSubmitPaymentModal,
+    openProjectDetailsModal,
   } = useAppContext();
 
   const activeProject = projects[0];
 
   const handleReviewDeliverable = () => {
-    Alert.alert(
-      'Review Deliverable',
-      'Opening Homepage Design v2 review workspace with feedback annotations.',
-      [{ text: 'OK' }]
-    );
+    openReviewDeliverableModal(deliverable.id);
   };
 
   const handleMessageAgency = () => {
-    if (onNavigateToMessages) {
-      onNavigateToMessages();
-    } else {
-      Alert.alert('Message Lead', 'Opening direct conversation with Kasun.');
-    }
+    openMessagesThreadModal('cl_senuri');
   };
 
   const handleViewMeeting = () => {
@@ -60,14 +57,7 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
   };
 
   const handleViewInvoice = () => {
-    if (onNavigateToFinance) {
-      onNavigateToFinance();
-    } else {
-      Alert.alert(
-        'Invoice INV-2026-014',
-        `Outstanding: LKR ${financialSummary.outstanding.toLocaleString()}\nTotal: LKR ${financialSummary.total.toLocaleString()}\nPaid: LKR ${financialSummary.received.toLocaleString()}\nDue Date: 30 Sep 2026`
-      );
-    }
+    openSubmitPaymentModal('inv_2026_014');
   };
 
   const handleDownloadFile = (fileName: string) => {
@@ -84,7 +74,7 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
       <View style={styles.greetingHeader}>
         <View style={styles.greetingLeft}>
           <Text style={styles.greetingTitle}>Hello {currentUser.firstName} 👋</Text>
-          <Text style={styles.greetingSubtitle}>Here's the latest on your projects.</Text>
+          <Text style={styles.greetingSubtitle}>Here&apos;s the latest on your projects.</Text>
         </View>
         <View style={styles.clientPortalBadge}>
           <View style={styles.portalDot} />
@@ -139,6 +129,61 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
         </View>
       </View>
 
+      {/* Direct Module Navigation Bar */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.workflowRow}
+      >
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/tasks')}
+        >
+          <Feather name="check-square" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Tasks</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/scope')}
+        >
+          <Feather name="target" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Scope</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/contract-terms')}
+        >
+          <Feather name="file-text" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Terms</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/contract-preview')}
+        >
+          <Feather name="eye" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Contract</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/contract-review')}
+        >
+          <Feather name="edit-3" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Review & Sign</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/onboarding')}
+        >
+          <Feather name="compass" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Onboarding</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
       {/* Action Required Banner */}
       <View style={styles.actionBanner}>
         <View style={styles.actionBannerTopRow}>
@@ -181,7 +226,11 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
 
       {/* Active Project Card */}
       {activeProject && (
-        <View style={styles.activeProjectCard}>
+        <TouchableOpacity
+          style={styles.activeProjectCard}
+          activeOpacity={0.85}
+          onPress={() => openProjectDetailsModal(activeProject.id)}
+        >
           <View style={styles.projectHeaderRow}>
             <Text style={styles.projectTagLabel}>ACTIVE PROJECT</Text>
             <View style={styles.milestoneBadge}>
@@ -237,11 +286,11 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
                 Current: {activeProject.currentFocus}
               </Text>
             </View>
-            <TouchableOpacity onPress={onNavigateToProjects}>
+            <View>
               <Text style={styles.viewProjectLink}>View project &gt;</Text>
-            </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
 
       {/* Meeting Card */}
@@ -983,6 +1032,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  workflowRow: {
+    gap: 8,
+    paddingVertical: 12,
+  },
+  workflowPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#EEE8F6',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    shadowColor: '#493068',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  workflowPillText: {
+    fontSize: 12,
+    fontFamily: typography.fonts.bold,
+    color: colors.buttonPrimary,
   },
 });
 

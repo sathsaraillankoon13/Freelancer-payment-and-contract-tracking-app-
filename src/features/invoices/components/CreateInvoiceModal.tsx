@@ -9,13 +9,14 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  } from 'react-native';
+  Platform,
+  Alert,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { BottomTabBar, TabName } from '@/components/navigation/BottomTabBar';
 
 export const CreateInvoiceModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -28,14 +29,7 @@ export const CreateInvoiceModal: React.FC = () => {
     currentUser,
     openAddClientModal,
     openCreateProjectModal,
-    activeTab,
-    setActiveTab,
   } = useAppContext();
-
-  const handleTabPress = (tab: TabName) => {
-    closeModal();
-    setActiveTab(tab);
-  };
 
   const isVisible = activeModal === 'create_invoice';
 
@@ -104,10 +98,11 @@ export const CreateInvoiceModal: React.FC = () => {
       setError('Please create a project for this client before creating an invoice');
       return;
     }
-    const validItems = items.map((it) => {
+    const validItems = items.map((it, idx) => {
       const q = Number(it.quantity) || 1;
       const r = Number(it.rate) || 0;
       return {
+        id: it.id || `item_${Date.now()}_${idx}`,
         description: it.description.trim() || 'Professional Services',
         quantity: q,
         rate: r,
@@ -124,7 +119,7 @@ export const CreateInvoiceModal: React.FC = () => {
     }
 
     try {
-      addInvoice({
+      const created = addInvoice({
         clientId: selectedClientId,
         projectId: selectedProjectId,
         dueDate,
@@ -141,6 +136,7 @@ export const CreateInvoiceModal: React.FC = () => {
       setDiscount('');
       setNotes('');
       setError('');
+      Alert.alert('Invoice Created', `Invoice #${created.invoiceNumber} has been successfully created!`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to save invoice.');
     }
@@ -152,7 +148,7 @@ export const CreateInvoiceModal: React.FC = () => {
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
       onRequestClose={closeModal}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
@@ -429,7 +425,7 @@ export const CreateInvoiceModal: React.FC = () => {
         <View
           style={[
             styles.bottomBar,
-            { paddingBottom: 10 },
+            { paddingBottom: Math.max(insets.bottom, 16) },
           ]}
         >
           <TouchableOpacity
@@ -449,8 +445,6 @@ export const CreateInvoiceModal: React.FC = () => {
             <Text style={styles.submitBtnText}>Issue Invoice</Text>
           </TouchableOpacity>
         </View>
-
-        <BottomTabBar activeTab={activeTab || 'finance'} onTabPress={handleTabPress} />
       </View>
     </Modal>
   );
@@ -459,7 +453,7 @@ export const CreateInvoiceModal: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: '#FAF9FD',
   },
   header: {
     flexDirection: 'row',
@@ -469,8 +463,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F0EFF6',
-    backgroundColor: 'transparent',
-    paddingBottom: 20
+    backgroundColor: colors.white,
+    paddingBottom: 16,
   },
   backButton: {
     padding: 4,
@@ -619,24 +613,18 @@ const styles = StyleSheet.create({
     borderColor: '#ECEAF5',
   },
   bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: '#F0EFF6',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    paddingTop: 14,
     flexDirection: 'row',
     gap: 10,
     shadowColor: '#493068',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
   },
   draftBtn: {
     flex: 1,
