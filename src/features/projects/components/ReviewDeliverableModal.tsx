@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,7 +17,6 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { BottomTabBar, TabName } from '@/components/navigation/BottomTabBar';
 
 export const ReviewDeliverableModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -28,14 +28,7 @@ export const ReviewDeliverableModal: React.FC = () => {
     reviewDeliverable,
     currentUser,
     canReviewDeliverables,
-    activeTab,
-    setActiveTab,
   } = useAppContext();
-
-  const handleTabPress = (tab: TabName) => {
-    closeModal();
-    setActiveTab(tab);
-  };
 
   const isVisible = activeModal === 'review_deliverable';
   const deliverable = deliverables.find((d) => d.id === selectedDeliverableId) || deliverables[0];
@@ -77,7 +70,7 @@ export const ReviewDeliverableModal: React.FC = () => {
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
       onRequestClose={closeModal}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
@@ -191,7 +184,7 @@ export const ReviewDeliverableModal: React.FC = () => {
                 <Text style={styles.fileSectionTitle}>Deliverable Files (1)</Text>
               </View>
               <View style={styles.versionBadge}>
-                <Text style={styles.versionBadgeText}>{deliverable.version.toUpperCase()} Final Draft</Text>
+                <Text style={styles.versionBadgeText}>{(deliverable.version || 'v1').toUpperCase()} Final Draft</Text>
               </View>
             </View>
 
@@ -273,7 +266,7 @@ export const ReviewDeliverableModal: React.FC = () => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity gradient
+            <TouchableOpacity
               style={styles.approveBtn}
               onPress={handleApprove}
               activeOpacity={0.8}
@@ -283,8 +276,6 @@ export const ReviewDeliverableModal: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-
-        <BottomTabBar activeTab={activeTab || 'projects'} onTabPress={handleTabPress} />
       </View>
     </Modal>
   );
@@ -293,7 +284,7 @@ export const ReviewDeliverableModal: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: '#FAF9FD',
   },
   header: {
     flexDirection: 'row',
@@ -303,8 +294,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F0EDF7',
-    backgroundColor: 'transparent',
-    paddingBottom: 20
+    backgroundColor: colors.white,
+    paddingBottom: 16,
   },
   backButton: {
     padding: 6,

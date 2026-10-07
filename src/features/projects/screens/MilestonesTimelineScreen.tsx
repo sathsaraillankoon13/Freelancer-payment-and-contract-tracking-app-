@@ -13,13 +13,13 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing } from '@/theme/spacing';
 import type { Milestone, Project } from '@/types';
 
 export const MilestonesTimelineScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const {
     projects,
+    addMilestone,
     updateMilestone,
     toggleMilestone,
     deleteMilestone,
@@ -69,9 +69,7 @@ export const MilestonesTimelineScreen: React.FC = () => {
       status: 'pending',
     };
 
-    const updated = [...(activeProject.milestones || []), newMilestone];
-    // update project through context
-    updateMilestone(activeProject.id, newMilestone.id, newMilestone);
+    addMilestone(activeProject.id, newMilestone);
     setNewTitle('');
     setNewDesc('');
     setNewDueDate('');
