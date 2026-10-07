@@ -2,129 +2,144 @@
 
 ## Branch: `Invoice-and-Payment-Tracking`
 
-**Component:** Payment & Invoice Management  
+**Component:** Invoice & Payment Tracking  
 **Application:** ISAACIFY Freelancer CRM Mobile  
 
 ---
 
 ## 📌 Component Overview
-This branch contains the project implementation for **Payment & Invoice Management**. It includes two primary functional screens / pages, interactive modals, financial calculation engines, and export utilities.
+This branch contains the official implementation of the **Invoice and Payment Tracking** component for the ISAACIFY mobile application. It covers full end-to-end finance overview dashboards, dynamic multi-item invoice creation, client bank payment submissions, transaction audit ledgers, client home overview, in-app notification center, user profiles, and calendar schedules.
 
-### 📄 Page 1: Invoice & Cashflow Management Page
-* **Source:** `src/features/invoices/screens/FinanceScreen.tsx`
-* **Key Components:**
+---
+
+## 🚀 Assigned Jira Work Items & Implementation Details
+
+### 🔹 SCRUM-27: Implement Finance Overview Screen
+* **Source Files:**
+  * `src/features/invoices/screens/FinanceScreen.tsx`
+  * `src/app/finance.tsx`
+* **Key Features:**
+  * Real-time financial summary cards: **Net Revenue**, **Collected Payments**, **Outstanding Balance**, and **Logged Expenses**.
+  * Dynamic cashflow bar chart visualization with 3-Month and 6-Month timeline toggles.
+  * Direct action buttons to issue new invoices and record direct ledger transactions.
+
+---
+
+### 🔹 SCRUM-28: Implement Invoices Screen
+* **Source Files:**
+  * `src/features/invoices/screens/FinanceScreen.tsx`
+* **Key Features:**
+  * Categorized invoice directory with filter chips (*All*, *Pending*, *Paid*, *Overdue*).
+  * Quick live search by client name, project title, or invoice number.
+  * One-tap invoice inspection, payment status badges, and deletion actions with Cloud Firestore real-time synchronization.
+
+---
+
+### 🔹 SCRUM-30: Implement Create/Edit Invoice Screen
+* **Source Files:**
   * `src/features/invoices/components/CreateInvoiceModal.tsx`
-  * `src/features/invoices/components/CashflowChart.tsx`
-* **Core Functionality:**
-  * Real-time cashflow metrics (Net profit, Collected revenue, Logged expenses, Outstanding balance).
-  * 3-Month and 6-Month dynamic cashflow bar chart visualization.
-  * Multi-item invoice builder with real-time tax (%) and discount calculations.
-  * Invoice lifecycle management (Draft, Sent, Partially Paid, Paid, Void).
-  * HTML / PDF invoice document exporter with print styling.
+  * `src/utils/invoiceDocument.ts`
+* **Key Features:**
+  * Dynamic multi-line item invoice builder with real-time subtotal, custom tax percentage, and discount calculations.
+  * Client and Project selector linked to active client contacts.
+  * One-tap **⚡ Quick Fill** for rapid demoing and testing.
+  * Printable HTML/PDF invoice generation and export engine via Expo Print and Sharing.
 
-### 📄 Page 2: Payment Tracking & Verification Page
-* **Source:**
+---
+
+### 🔹 SCRUM-31: Implement Payments & History Screen - Page 6
+* **Source Files:**
   * `src/features/payments/components/SubmitPaymentModal.tsx`
   * `src/features/invoices/components/RecordTransactionModal.tsx`
-* **Key Utilities:**
   * `src/utils/payments.ts`
   * `src/utils/finance.ts`
-* **Core Functionality:**
-  * Client bank transfer receipt & payment proof attachment upload.
-  * Payment verification and receipt approval workflow with prevention of overpayment.
-  * Direct payment recording and cash transaction ledger.
-  * Real-time audit trail and transaction categorization.
+* **Key Features:**
+  * Client payment submission modal with bank reference IDs, transaction notes, and bank slip image attachments.
+  * Provider payment verification workflow: verify receipt or reject invalid payments with balance safety checks preventing overpayments.
+  * Comprehensive transaction history ledger tracking both income and expense categories.
+
+---
+
+### 🔹 SCRUM-32: Implement Client Home Screen
+* **Source Files:**
+  * `src/features/home/components/ClientHomeView.tsx`
+  * `src/features/home/screens/HomeScreen.tsx`
+  * `src/app/home.tsx`
+* **Key Features:**
+  * Dedicated client portal home view showcasing active projects, pending deliverables, and unsettled invoice balances.
+  * Interactive action anchors allowing clients to review deliverables, message providers, and trigger payments directly.
+
+---
+
+### 🔹 SCRUM-33: Implement Notifications Screen
+* **Source Files:**
+  * `src/features/home/components/NotificationCenterModal.tsx`
+* **Key Features:**
+  * Real-time in-app notification center categorizing invoice updates, milestone approvals, deliverables, and payment receipts.
+  * Unread badges with 1-tap "Mark all as read" and direct modal navigation to linked entities.
+
+---
+
+### 🔹 SCRUM-24: Implement Profile Screen
+* **Source Files:**
+  * `src/features/settings/screens/MoreSettingsScreen.tsx`
+  * `src/features/settings/components/EditProfileModal.tsx`
+  * `src/app/more.tsx`
+* **Key Features:**
+  * User profile management screen with photo avatar, bio notes, hourly rates, and skills tags.
+  * Perspective switcher allowing instant 1-tap evaluation between Freelancer, Company, and Client roles.
+
+---
+
+### 🔹 SCRUM-25 & SCRUM-26: Implement Calendar Screen
+* **Source Files:**
+  * `src/features/reminders/components/RemindersModal.tsx`
+* **Key Features:**
+  * Calendar schedule and reminder agenda displaying upcoming client meetings, invoice due dates, and project milestones.
+  * Create, edit, and toggle reminders with date/time selectors.
 
 ---
 
 ## 📁 Branch Structure
 ```text
-├── README.md                                  # This documentation
+├── README.md                                  # Documentation & Jira Mapping
+├── FILE_MANIFEST.md                           # Detailed file index
 └── src/
+    ├── app/
+    │   ├── finance.tsx                        # Route: Finance & Invoices
+    │   ├── home.tsx                           # Route: Home Dashboard
+    │   └── more.tsx                           # Route: Settings & Profile
     ├── features/
     │   ├── invoices/
     │   │   ├── screens/
-    │   │   │   └── FinanceScreen.tsx          # Page 1: Finance & Invoices
+    │   │   │   └── FinanceScreen.tsx          # SCRUM-27 & 28: Finance Overview & Invoices
     │   │   └── components/
-    │   │       ├── CashflowChart.tsx          # Monthly cashflow chart
-    │   │       ├── CreateInvoiceModal.tsx     # Invoice generator
-    │   │       └── RecordTransactionModal.tsx # Ledger recorder
-    │   └── payments/
+    │   │       ├── CashflowChart.tsx          # Cashflow bar chart visualizer
+    │   │       ├── CreateInvoiceModal.tsx     # SCRUM-30: Create/Edit Invoice Screen
+    │   │       └── RecordTransactionModal.tsx # Ledger recording modal
+    │   ├── payments/
+    │   │   └── components/
+    │   │       └── SubmitPaymentModal.tsx     # SCRUM-31: Payments & Verification Screen
+    │   ├── home/
+    │   │   ├── screens/
+    │   │   │   └── HomeScreen.tsx             # Root home screen
+    │   │   └── components/
+    │   │       ├── ClientHomeView.tsx         # SCRUM-32: Client Home Screen
+    │   │       └── NotificationCenterModal.tsx# SCRUM-33: Notifications Screen
+    │   ├── settings/
+    │   │   ├── screens/
+    │   │   │   └── MoreSettingsScreen.tsx     # SCRUM-24: Profile & Settings Screen
+    │   │   └── components/
+    │   │       └── EditProfileModal.tsx       # Profile editor modal
+    │   └── reminders/
     │       └── components/
-    │           └── SubmitPaymentModal.tsx     # Page 2: Payment submission & receipts
+    │           └── RemindersModal.tsx         # SCRUM-25 & 26: Calendar & Reminders
     ├── services/
-    │   └── financeExport.ts                   # PDF invoice & financial report export
+    │   ├── financeExport.ts                   # PDF invoice and financial report export
+    │   ├── firebase.ts                        # Cloud Firestore initialization
+    │   └── firebaseService.ts                 # Real-time Firestore sync listeners
     └── utils/
-        ├── finance.ts                         # Financial formulas & formatting
-        ├── invoiceDocument.ts                 # HTML invoice generator
-        └── payments.ts                        # Payment verification rules
-# Freelancer Payment and Contract Tracking App (ISAACIFY Mobile)
-
-> **Main Branch — Common Application Core & Shared Foundation**  
-> Mobile Application developed with **Expo (React Native)** and **TypeScript**.
-
----
-
-## 📌 Project Architecture & Group Structure
-
-This repository contains the mobile client for **ISAACIFY Freelancer CRM & Contract Management System**.  
-The project is divided into **four dedicated member components**, each maintained on its respective Git branch, with the **`main` branch** serving as the **Common Project Core & Application Foundation**.
-
-### 👥 Project Components & Feature Branches
-
-| Component | Branch Name | Key Features |
-|---|---|---|
-| **01. Contract & Scope Management** | [`Contract-and-Scope-Management`](https://github.com/sathsaraillankoon13/Freelancer-payment-and-contract-tracking-app-/tree/Contract-and-Scope-Management) | Legal Terms, Scope Agreements, Contract Acceptance, PDF Export |
-| **02. Payment & Invoice Management** | [`Invoice-and-Payment-Tracking`](https://github.com/sathsaraillankoon13/Freelancer-payment-and-contract-tracking-app-/tree/Invoice-and-Payment-Tracking) | Invoices, Cashflow Bar Chart, Payment Slips & Verification Ledger |
-| **03. Milestone & Approval Management** | [`Milestone-and-Approval-Management`](https://github.com/sathsaraillankoon13/Freelancer-payment-and-contract-tracking-app-/tree/Milestone-and-Approval-Management) | Milestone Timelines, Deliverable Uploads (up to 20MB), Review & Change Requests |
-| **04. Client & Project Management** | [`Client-and-Project-Management`](https://github.com/sathsaraillankoon13/Freelancer-payment-and-contract-tracking-app-/tree/Client-and-Project-Management) | Client Directory, Project Tracking, Task Checklists & Messaging |
-
----
-
-## 🏛️ Main Branch: Common Application Core
-
-The `main` branch houses the shared infrastructure and common screens utilized across all four member components:
-
-### 1. 🔐 Authentication & Onboarding Flow
-* **Splash Screen (`SplashScreen.tsx`):** Smooth branding initialization with logo animation.
-* **Onboarding Carousel (`OnboardingScreen.tsx`):** 3-step value proposition walkthrough for new users.
-* **Role Selection (`RoleSelectionScreen.tsx`):** Dual-role onboarding supporting **Individual Freelancers**, **Freelancer Agencies/Teams**, and **Clients**.
-* **Sign In (`LoginScreen.tsx`):** Form validation, password visibility toggle, and developer quick-fill credentials.
-* **Create Account (`RegisterScreen.tsx`):** Registration for Freelancers and Clients with immediate role assignment.
-* **Password Reset (`ForgotPasswordScreen.tsx`):** Recovery instructions flow.
-
-### 2. 🏠 Home Dashboard & Navigation Shell
-* **Dual-View Dashboard (`HomeScreen.tsx`):** 
-  * **Freelancer View (`FreelancerHomeView.tsx`):** Cashflow overview cards, active project shortcuts, and deadline reminders.
-  * **Client View (`ClientHomeView.tsx`):** Project progress indicators, invoice alerts, and milestone updates.
-* **Bottom Navigation Bar (`BottomTabBar.tsx`):** 5-tab responsive navigation with notification badging.
-* **Notification Center (`NotificationCenterModal.tsx`):** Centralized alert history with unread badge counters.
-
-### 3. ⚙️ Account & Settings
-* **Settings Hub (`MoreSettingsScreen.tsx`):** Profile management, role indicator, and quick actions.
-* **Edit Profile (`EditProfileModal.tsx`):** Agency branding, name, contact information, and currency preferences.
-* **Team Management (`TeamManagementModal.tsx`):** Team member invitations and permissions.
-* **Reminders (`RemindersModal.tsx`):** Calendar notifications and scheduled meetings.
-
-### 4. 🎨 Design System & State Management
-* **Design System:** Custom HSL/HEX color palette (`colors.ts`), 8pt grid spacing (`spacing.ts`), and DM Sans typography tokens (`typography.ts`).
-* **State Management:** Reactive global state provider (`AppContext.tsx`) with cross-workspace isolation and storage persistence.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-* **Node.js** (v18+)
-* **Expo Go** app on Android/iOS or Android Emulator
-
-### Installation & Run
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Start Expo development server
-npx expo start
-
-# 3. Open on Android Emulator (Press 'a') or Web (Press 'w')
+        ├── finance.ts                         # Financial formulas & currency formatting
+        ├── invoiceDocument.ts                 # Clean HTML invoice print template engine
+        └── payments.ts                        # Payment verification & anti-overpayment logic
 ```

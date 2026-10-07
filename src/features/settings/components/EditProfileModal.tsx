@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -15,7 +16,6 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { User } from '@/types';
-import { BottomTabBar, TabName } from '@/components/navigation/BottomTabBar';
 
 interface EditProfileContentProps {
   currentUser: User;
@@ -27,7 +27,7 @@ const EditProfileContent: React.FC<EditProfileContentProps> = ({
   closeModal,
 }) => {
   const insets = useSafeAreaInsets();
-  const { setActiveTab, updateProfile, updateCompanyDetails } = useAppContext();
+  const { updateProfile, updateCompanyDetails } = useAppContext();
 
   const [name, setName] = useState(currentUser.name || '');
   const [firstName, setFirstName] = useState(currentUser.firstName || '');
@@ -70,11 +70,6 @@ const EditProfileContent: React.FC<EditProfileContentProps> = ({
 
     Alert.alert('Profile Saved', 'Your profile and business details have been updated.');
     closeModal();
-  };
-
-  const handleTabPress = (tab: TabName) => {
-    closeModal();
-    setActiveTab(tab);
   };
 
   const initials = (firstName || name || 'IS').slice(0, 2).toUpperCase();
@@ -266,9 +261,6 @@ const EditProfileContent: React.FC<EditProfileContentProps> = ({
           <Text style={styles.saveBtnText}>Save Profile Changes</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Persistent Bottom Navigation Bar */}
-      <BottomTabBar activeTab="more" onTabPress={handleTabPress} />
     </View>
   );
 };
@@ -283,7 +275,7 @@ export const EditProfileModal: React.FC = () => {
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
       onRequestClose={closeModal}
     >
       <EditProfileContent

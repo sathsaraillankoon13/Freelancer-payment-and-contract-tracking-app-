@@ -11,6 +11,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,7 +19,6 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { BottomTabBar, TabName } from '@/components/navigation/BottomTabBar';
 
 export const SubmitPaymentModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -28,14 +28,7 @@ export const SubmitPaymentModal: React.FC = () => {
     selectedInvoiceId,
     invoices,
     submitPayment,
-    activeTab,
-    setActiveTab,
   } = useAppContext();
-
-  const handleTabPress = (tab: TabName) => {
-    closeModal();
-    setActiveTab(tab);
-  };
 
   const isVisible = activeModal === 'submit_payment';
   const invoice = invoices.find((i) => i.id === selectedInvoiceId) || invoices[0];
@@ -94,7 +87,7 @@ export const SubmitPaymentModal: React.FC = () => {
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
       onRequestClose={closeModal}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
@@ -214,13 +207,11 @@ export const SubmitPaymentModal: React.FC = () => {
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </View>
 
-          <TouchableOpacity gradient style={styles.submitBtn} onPress={handleSubmit} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} activeOpacity={0.8}>
             <Feather name="send" size={18} color={colors.white} />
             <Text style={styles.submitBtnText}>Submit Payment for Verification</Text>
           </TouchableOpacity>
         </ScrollView>
-
-        <BottomTabBar activeTab={activeTab || 'finance'} onTabPress={handleTabPress} />
       </View>
     </Modal>
   );
@@ -229,7 +220,7 @@ export const SubmitPaymentModal: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: '#FAF9FD',
   },
   header: {
     flexDirection: 'row',
@@ -239,8 +230,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F0EDF7',
-    backgroundColor: 'transparent',
-    paddingBottom: 20
+    backgroundColor: colors.white,
+    paddingBottom: 16,
   },
   backButton: { padding: 6 },
   closeButton: { padding: 6 },

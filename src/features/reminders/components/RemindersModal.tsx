@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
   Switch,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -17,7 +18,6 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { ReminderItem } from '@/types';
-import { BottomTabBar, TabName } from '@/components/navigation/BottomTabBar';
 
 export const RemindersModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -30,8 +30,6 @@ export const RemindersModal: React.FC = () => {
     snoozeReminder,
     deleteReminder,
     projects,
-    activeTab: mainActiveTab,
-    setActiveTab: setMainActiveTab,
   } = useAppContext();
 
   const isVisible = activeModal === 'reminders';
@@ -84,16 +82,11 @@ export const RemindersModal: React.FC = () => {
     ]);
   };
 
-  const handleTabPress = (tab: TabName) => {
-    closeModal();
-    setMainActiveTab(tab);
-  };
-
   return (
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
       onRequestClose={closeModal}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
@@ -333,9 +326,6 @@ export const RemindersModal: React.FC = () => {
             })
           )}
         </ScrollView>
-
-        {/* Persistent Bottom Navigation Bar */}
-        <BottomTabBar activeTab={mainActiveTab} onTabPress={handleTabPress} />
       </View>
     </Modal>
   );
