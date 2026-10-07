@@ -9,11 +9,46 @@
 ---
 
 ## 📌 Component Overview
-This branch contains the official implementation of the **Contract & Scope Management** component by **Perera K.A**, fulfilling all rubric criteria, interactive CRUD operations, and assigned Jira user stories (**SCRUM-17**, **SCRUM-18**, **SCRUM-19**).
+This branch contains the official implementation of the **Contract & Scope Management** component by **Perera K.A**, fulfilling all rubric criteria, interactive CRUD operations, and assigned Jira user stories (**SCRUM-17**, **SCRUM-18**, **SCRUM-19**, **SCRUM-52**, **SCRUM-53**, **SCRUM-54**, **SCRUM-55**).
 
 ---
 
 ## 🚀 Assigned Jira User Stories & Implementation Details
+
+### 🔹 SCRUM-52: Implement Projects List Screen
+* **Source Files:**
+  * `src/features/projects/screens/ProjectsScreen.tsx`
+  * `src/app/projects.tsx`
+* **Key Features:**
+  * Active projects catalog with real-time keyword search, status filtering, and budget tracking.
+  * Direct linkage to project scope review and contract terms.
+
+---
+
+### 🔹 SCRUM-53: Implement Client Details Screen
+* **Source Files:**
+  * `src/features/clients/components/ClientDetailsModal.tsx`
+* **Key Features:**
+  * Comprehensive client profile view with linked active projects, total billing records, and direct contact channels.
+
+---
+
+### 🔹 SCRUM-54: Implement Client Home Page
+* **Source Files:**
+  * `src/features/home/components/ClientHomeView.tsx`
+* **Key Features:**
+  * Dedicated client overview portal detailing ongoing project scope, milestone timelines, and contract acceptance status.
+
+---
+
+### 🔹 SCRUM-55: Implement Client Page List
+* **Source Files:**
+  * `src/features/clients/screens/ClientsScreen.tsx`
+  * `src/app/clients.tsx`
+* **Key Features:**
+  * Client directory list with live search, company affiliations, and contact quick actions.
+
+---
 
 ### 🔹 SCRUM-17: Implement Password Reset Screen
 * **Source Files:**
@@ -53,11 +88,11 @@ This branch contains the official implementation of the **Contract & Scope Manag
   * Central workspace management hub and application navigation.
   * Access to agency profile, team management, security preferences, and currency settings.
   * Legal terms links: Privacy Policy, Terms of Service, and Master Service Agreement overview.
-  * Clean responsive card design with quick navigation to all sub-modules.
+  * Perspective switcher for 1-tap evaluation across Freelancer, Company, and Client roles.
 
 ---
 
-## ⚖️ Contract & Scope Management Rubric (Member 1 Core & CRUD)
+## ⚖️ Contract & Scope Management Core & CRUD
 
 ### 📄 1. Contract Terms & Clauses Management (CRUD 1)
 * **Source Files:**
@@ -68,15 +103,13 @@ This branch contains the official implementation of the **Contract & Scope Manag
   * Categorized clause library: *Scope & Revisions*, *Payment & Late Fees*, *Intellectual Property*, *Termination*, and *General*.
   * **Add / Edit Clause Modal:** Real-time clause title, category, legal text editing, and standard clause toggles.
   * Clause deletion with safety confirmations.
-  * Search filtering across legal clauses and quick navigation to contract preview.
 
 ### 📄 2. Official Preview Contract Screen
 * **Source Files:**
   * `src/features/contracts/screens/ContractPreviewScreen.tsx`
   * `src/app/contract-preview.tsx`
 * **Key Features:**
-  * Rendered as an official formal binding agreement (*Master Creative Services & Independent Contractor Agreement*).
-  * Formatted with Provider details, Client metadata, Project scope summary, and legal clause articles.
+  * Formatted official formal binding agreement (*Master Creative Services & Independent Contractor Agreement*).
   * Direct system share action and high-resolution PDF export alert simulation.
 
 ### 📄 3. Contract Review & Digital Signature
@@ -87,7 +120,6 @@ This branch contains the official implementation of the **Contract & Scope Manag
   * Clause-by-clause client review checklist with interactive check indicators.
   * **Request Amendment Modal:** Submit proposed wording changes to the service provider.
   * Terms acceptance checkbox and **Digital Signature Pad** (full legal name confirmation).
-  * Instant execution alert and project state activation.
 
 ### 📄 4. Project Scope Management
 * **Source Files:**
@@ -96,7 +128,6 @@ This branch contains the official implementation of the **Contract & Scope Manag
 * **Key Features:**
   * In-Scope deliverables itemization with add/remove actions.
   * Out-of-Scope exclusions list preventing unauthorized scope creep.
-  * Iterative revision policy specifications (2 review rounds, hourly out-of-scope rate).
   * **Scope Change Request Modal:** Submit formal change requests with LKR budget and timeline impact.
 
 ---
@@ -106,33 +137,33 @@ This branch contains the official implementation of the **Contract & Scope Manag
 ├── FILE_MANIFEST.md                                   # Comprehensive file manifest
 ├── README.md                                          # This documentation
 ├── push_to_github.bat                                 # One-click push script
-├── src/
-│   ├── app/
-│   │   ├── index.tsx                                  # Splash screen route
-│   │   ├── onboarding.tsx                             # Onboarding route
-│   │   ├── scope.tsx                                  # Project Scope route
-│   │   ├── contract-terms.tsx                         # Contract Terms route
-│   │   ├── contract-preview.tsx                       # Preview Contract route
-│   │   ├── contract-review.tsx                        # Contract Review & Sign route
-│   │   ├── more.tsx                                   # More settings route
-│   │   └── auth/
-│   │       ├── account-type.tsx                       # Role selection route
-│   │       ├── login.tsx                              # Login route
-│   │       ├── register.tsx                           # Registration route
-│   │       ├── email-verification.tsx                 # OTP verification route
-│   │       └── forgot-password.tsx                    # Password reset route
-│   ├── components/
-│   │   ├── branding/
-│   │   │   └── IsaacifyLogo.tsx                       # Isometric brand logo
-│   │   └── illustrations/
-│   │       ├── LoginFolderBadge.tsx                   # Auth folder illustration
-│   │       └── OnboardingCardIllustration.tsx         # Onboarding cards graphic
-│   └── features/
-│       ├── auth/screens/                              # Authentication screens
-│       ├── contracts/screens/                         # Contract terms, preview, review
-│       ├── onboarding/screens/                        # Onboarding screens
-│       ├── projects/screens/ & components/            # Scope screen & terms modal
-│       ├── reminders/components/                      # Reminders management modal
-│       └── settings/screens/                          # More settings screen
-└── design-references/                                 # Relevant Figma / UI references
+└── src/
+    ├── app/
+    │   ├── index.tsx                                  # Splash screen route
+    │   ├── onboarding.tsx                             # Onboarding route
+    │   ├── scope.tsx                                  # Project Scope route
+    │   ├── contract-terms.tsx                         # Contract Terms route
+    │   ├── contract-preview.tsx                       # Preview Contract route
+    │   ├── contract-review.tsx                        # Contract Review & Sign route
+    │   ├── projects.tsx                               # Projects catalog route
+    │   ├── clients.tsx                                # Clients directory route
+    │   ├── more.tsx                                   # More settings route
+    │   └── auth/
+    │       ├── account-type.tsx                       # Role selection route
+    │       ├── login.tsx                              # Login route
+    │       ├── register.tsx                           # Registration route
+    │       ├── email-verification.tsx                 # OTP verification route
+    │       └── forgot-password.tsx                    # Password reset route
+    ├── features/
+    │   ├── auth/screens/                              # Authentication screens
+    │   ├── contracts/screens/                         # Contract terms, preview, review
+    │   ├── onboarding/screens/                        # Onboarding screens
+    │   ├── projects/screens/ & components/            # Scope screen & terms modal
+    │   ├── clients/screens/ & components/             # Clients list & details modal
+    │   ├── home/components/                           # Client home portal view
+    │   ├── reminders/components/                      # Reminders management modal
+    │   └── settings/screens/                          # More settings screen
+    └── services/
+        ├── firebase.ts                                # Firebase Cloud Firestore initialization
+        └── firebaseService.ts                         # Real-time Firestore sync listeners
 ```

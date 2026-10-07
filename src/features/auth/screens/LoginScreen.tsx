@@ -50,8 +50,15 @@ export const LoginScreen: React.FC = () => {
     setErrors({});
     setLoading(true);
 
-    if (email.toLowerCase().includes('senuri') || email.toLowerCase().includes('client')) {
+    const lowerEmail = email.toLowerCase();
+    if (lowerEmail.includes('senuri') || lowerEmail.includes('client')) {
       switchRole('client');
+    } else if (
+      lowerEmail.includes('company') ||
+      lowerEmail.includes('agency') ||
+      lowerEmail.includes('isaacify')
+    ) {
+      switchRole('team');
     } else {
       switchRole('freelancer');
     }
@@ -127,7 +134,28 @@ export const LoginScreen: React.FC = () => {
                       email === 'kasun@creativepulse.lk' && styles.demoPillTextActive,
                     ]}
                   >
-                    ⚡ Kasun (Freelancer)
+                    ⚡ Freelancer
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.demoPill,
+                    email === 'company@isaacify.io' && styles.demoPillActive,
+                  ]}
+                  onPress={() => {
+                    setEmail('company@isaacify.io');
+                    setPassword('password123');
+                    setErrors({});
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.demoPillText,
+                      email === 'company@isaacify.io' && styles.demoPillTextActive,
+                    ]}
+                  >
+                    ⚡ Company
                   </Text>
                 </TouchableOpacity>
 
@@ -148,7 +176,7 @@ export const LoginScreen: React.FC = () => {
                       email === 'senuri@ceylonbites.lk' && styles.demoPillTextActive,
                     ]}
                   >
-                    ⚡ Senuri (Client)
+                    ⚡ Client
                   </Text>
                 </TouchableOpacity>
               </View>
