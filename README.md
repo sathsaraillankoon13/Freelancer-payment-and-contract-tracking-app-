@@ -1,122 +1,89 @@
-# Freelancer Payment & Contract Tracking App
+# ISAACIFY Mobile CRM — Full Integrated Application
 
-## Branch: `Milestone-and-Approval-Management`
-
-**Component:** Milestone and Approval Management  
-**Member:** Illankoon I.A.K.S (IT23554818)  
-**Application:** ISAACIFY Freelancer CRM Mobile  
+> **Main Branch — Production Master & Unified System Core**  
+> Complete cross-platform mobile CRM app for Freelancers, Teams & Clients.  
+> Built with **React Native (Expo SDK 57)**, **TypeScript**, **Cloud Firestore**, and **Hermes**.
 
 ---
 
-## 📌 Component Overview
-This branch contains the official implementation of the **Deliverable Upload, Review & Milestone Approval** component for the ISAACIFY mobile application. It covers full lifecycle milestone progress tracking, native file picking and deliverable uploading, shared client file preview, structured deliverable approval and change request review workflows, and comprehensive task management.
+## 📌 Group Project Allocation & Component Mapping
+
+| Member Name | Student ID | Component / Specialization | Git Branch |
+|---|---|---|---|
+| **Perera K.A** | IT23567924 | Contract & Scope Management, Terms, Reminders & Auth | `Contract-and-Scope-Management` |
+| **Nimnadi S.D.T** | IT23569218 | Payment & Invoice Management, Cashflow & Financials | `Invoice-and-Payment-Tracking` |
+| **Illankoon I.A.K.S** | IT23554818 | Deliverable & Approval Management, Milestones & Tasks | `Milestone-and-Approval-Management` |
+| **Silva S.T.S** | IT23550780 | Client & Project Management, Directory & Messaging | `Client-and-Project-Management` |
 
 ---
 
-## 🚀 Assigned Jira Work Items & Implementation Details
+## 🚀 Assigned Jira Work Items & Verification Status
 
-### 🔹 SCRUM-45: Implement Client Milestone Review Screen
-* **Source Files:**
-  * `src/features/projects/screens/MilestonesTimelineScreen.tsx`
-  * `src/app/milestones.tsx`
-* **Key Features:**
-  * Interactive milestone timeline displaying sequential stages with due dates and real-time status pills (*Pending*, *In Review*, *Approved*, *Rejected*).
-  * Direct action buttons to submit deliverables or trigger review approval workflows.
-  * Milestone deletion with dependency safeguards protecting linked task records.
+### 🔹 SCRUM-65: Verify Git Branches & Initial Integration
+* **Status:** **Completed & Verified**
+* **Scope:** 
+  * Audited and synchronized all 4 dedicated remote branches (`Contract-and-Scope-Management`, `Invoice-and-Payment-Tracking`, `Milestone-and-Approval-Management`, `Client-and-Project-Management`).
+  * Ensured zero Git merge conflicts and validated clean fast-forward pushes to GitHub origin.
+  * Verified self-contained dependencies across all individual member contributions.
 
 ---
 
-### 🔹 SCRUM-43: Implement File Upload Screen
-* **Source Files:**
-  * `src/features/projects/components/SubmitDeliverableModal.tsx`
-  * `src/services/attachments.ts`
-* **Key Features:**
-  * Native document and image picker supporting up to 20MB file submissions.
-  * Versioning tracking (*v1*, *v2*, *v3*) with deliverable notes and milestone linkage.
-  * Progress upload indicator and Cloud Firestore deliverable synchronization.
+### 🔹 SCRUM-69: Run Integration & Prepare Test Documentation
+* **Status:** **Completed & Verified**
+* **Scope:**
+  * End-to-end integration and cross-feature execution:
+    * Auth / Session Restore ➔ Home Dashboard ➔ Projects Catalog ➔ Client Directory ➔ Contracts & Signatures ➔ Milestones & Deliverables ➔ Invoices & Payments ➔ Messages Inbox.
+  * Live Android execution validated on Pixel 8 (`emulator-5554`).
+  * 100% Cloud Firestore sync verified across all 6 collections (`projects`, `clients`, `invoices`, `messages`, `deliverables`, `tasks`).
+  * TypeScript validation: **0 errors** (`tsc --noEmit`).
 
 ---
 
-### 🔹 SCRUM-44: Implement Deliverable File Preview Screen
-* **Source Files:**
-  * `src/features/projects/components/SubmitDeliverableModal.tsx`
-  * `src/features/projects/components/ReviewDeliverableModal.tsx`
-* **Key Features:**
-  * File preview card with file extension badges (*PDF*, *PNG*, *FIG*, *ZIP*), human-readable byte sizes, and timestamps.
-  * One-tap file opener using Expo Sharing and Linking.
-  * Public client review web access indicator (`https://freelancer-app-d9103.web.app/deliverables/:id`).
-
----
-
-### 🔹 SCRUM-46: Implement Deliverable Review Screen
-* **Source Files:**
-  * `src/features/projects/components/ReviewDeliverableModal.tsx`
-* **Key Features:**
-  * Dedicated review modal for clients to inspect submitted deliverable files and author notes.
-  * Client decision controls: **Approve Deliverable** or **Request Changes**.
-  * Instant status update reflecting on both Freelancer and Client view dashboards.
-
----
-
-### 🔹 SCRUM-47: Complete Approval & Change Request Flow
-* **Source Files:**
-  * `src/features/projects/components/ReviewDeliverableModal.tsx`
-  * `src/features/projects/screens/MilestonesTimelineScreen.tsx`
-* **Key Features:**
-  * Structured change request flow with mandatory revision feedback notes.
-  * Automatic transition of milestone state back to provider queue upon change request.
-  * Full audit trail logging review timestamps and client comments.
-
----
-
-### 🔹 SCRUM-39: Implement Tasks Screen
-* **Source Files:**
-  * `src/features/tasks/screens/TasksScreen.tsx`
-  * `src/app/tasks.tsx`
-* **Key Features:**
-  * Task checklist directory categorized by project affiliation and status (*All*, *In Progress*, *Pending*, *Completed*).
-  * Live search bar filtering by task title or description keywords.
-  * Priority badges (*High*, *Medium*, *Low*) and dynamic completion progress bars.
-
----
-
-### 🔹 SCRUM-40: Implement Task Details Screen
-* **Source Files:**
-  * `src/features/tasks/screens/TasksScreen.tsx`
-* **Key Features:**
-  * Task inspection and editing: update title, priority, due date, and completion toggle.
-  * Two-way data synchronization between task completions and project overall percentage.
-
----
-
-### 🔹 SCRUM-41: Implement Delete Task Flow
-* **Source Files:**
-  * `src/features/tasks/screens/TasksScreen.tsx`
-* **Key Features:**
-  * Safe task deletion with instant confirmation and Cloud Firestore cleanup.
-
----
-
-## 📁 Branch Structure
+## 📁 Repository File Structure
 ```text
-├── README.md                                  # Documentation & Jira Mapping
-├── FILE_MANIFEST.md                           # Detailed file index
+├── README.md                                  # Production master documentation
+├── FILE_MANIFEST.md                           # Master file & component manifest
+├── IMPLEMENTATION_CHECKLIST.md                # 18-point verification matrix
+├── package.json                               # Expo dependencies & scripts
+├── app.json                                   # App configuration & deep links
+├── tsconfig.json                              # TypeScript configuration
+├── firestore.rules                            # Cloud Firestore security rules
 └── src/
-    ├── app/
-    │   ├── milestones.tsx                     # Route: Milestones Timeline
-    │   └── tasks.tsx                          # Route: Tasks Management
-    ├── features/
-    │   ├── projects/
-    │   │   ├── screens/
-    │   │   │   └── MilestonesTimelineScreen.tsx # SCRUM-45: Milestone Timeline
-    │   │   └── components/
-    │   │       ├── SubmitDeliverableModal.tsx # SCRUM-43 & 44: File Upload & Preview
-    │   │       └── ReviewDeliverableModal.tsx # SCRUM-46 & 47: Approval & Change Requests
-    │   └── tasks/
-    │       └── screens/
-    │           └── TasksScreen.tsx            # SCRUM-39, 40, 41: Tasks Management & Deletion
-    └── services/
-        ├── attachments.ts                     # File picker & native attachment helper
-        ├── firebase.ts                        # Cloud Firestore initialization
-        └── firebaseService.ts                 # Real-time Firestore sync listeners
+    ├── app/                                   # Expo Router Screens (Root Navigators)
+    │   ├── _layout.tsx                        # Global Stack & Modal definitions
+    │   ├── index.tsx                          # App splash entry
+    │   ├── onboarding.tsx                     # 3-slide Onboarding carousel
+    │   ├── home.tsx                           # Home dashboard screen
+    │   ├── projects.tsx                       # Projects catalog
+    │   ├── clients.tsx                        # Clients directory
+    │   ├── finance.tsx                        # Finance & Invoices
+    │   ├── messages.tsx                       # Messaging inbox
+    │   ├── tasks.tsx                          # Tasks management
+    │   ├── milestones.tsx                     # Milestones & Timeline
+    │   ├── scope.tsx                          # Project scope baseline
+    │   ├── contract-terms.tsx                 # Contract terms & clauses
+    │   ├── contract-preview.tsx               # Master agreement preview
+    │   ├── contract-review.tsx                # Contract review, sign & PDF
+    │   ├── more.tsx                           # Account, preferences & settings
+    │   ├── rubrics.tsx                        # All 4 members rubric hub
+    │   └── auth/                              # Login, Register, AccountType, OTP
+    ├── features/                              # Domain Feature Modules
+    │   ├── auth/                              # Authentication & Credentials
+    │   ├── clients/                           # Client Directory & Contacts
+    │   ├── contracts/                         # Legal Terms & Digital Signatures
+    │   ├── home/                              # Dashboards (Freelancer / Client)
+    │   ├── invoices/                          # Invoices, Cashflow & Ledgers
+    │   ├── messages/                          # Conversations & Chat Threads
+    │   ├── onboarding/                        # Onboarding Walkthrough
+    │   ├── payments/                          # Bank Slips & Payment Verification
+    │   ├── projects/                          # Projects, Scope & Deliverables
+    │   ├── reminders/                         # Calendar Agenda & Reminders
+    │   ├── settings/                          # Profile, Branding & Team Admin
+    │   └── tasks/                             # Task Checklists & Priorities
+    ├── services/                              # Firebase, Storage & Export Services
+    ├── components/                            # Reusable UI Primitives & Navigation
+    ├── context/                               # Global State & Perspective Switcher
+    ├── theme/                                 # Design System Tokens
+    ├── types/                                 # Global TypeScript Models
+    └── utils/                                 # Dates, Currency, Documents & Permissions
 ```

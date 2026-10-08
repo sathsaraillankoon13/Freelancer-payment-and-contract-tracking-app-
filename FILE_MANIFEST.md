@@ -1,19 +1,13 @@
-# File Manifest — Milestone & Approval Management
+# Master File Manifest — Full Application Integration
 
-**Component:** Milestone and Approval Management  
-**Branch:** `Milestone-and-Approval-Management`  
-**Member:** Illankoon I.A.K.S (IT23554818)  
-**Assigned Jira Work Items:** SCRUM-39, SCRUM-40, SCRUM-41, SCRUM-43, SCRUM-44, SCRUM-45, SCRUM-46, SCRUM-47  
+**Application:** ISAACIFY Freelancer CRM Mobile  
+**Branch:** `main`  
+**Assigned Jira Work Items:** SCRUM-65, SCRUM-69 (Integration & Verification)  
 
-| Jira Key | Work Item | File Path | Functional Area |
+| Component | Member Responsible | Key Entry Points | Primary Git Branch |
 |---|---|---|---|
-| **SCRUM-43** | Implement File Upload Screen | `src/features/projects/components/SubmitDeliverableModal.tsx` | Deliverable Upload & Versioning |
-| **SCRUM-44** | Implement Deliverable File Preview Screen | `src/features/projects/components/SubmitDeliverableModal.tsx`, `ReviewDeliverableModal.tsx` | Deliverable File Inspection |
-| **SCRUM-45** | Implement Client Milestone Review Screen | `src/features/projects/screens/MilestonesTimelineScreen.tsx` | Milestone Timeline & Review |
-| **SCRUM-46** | Implement Deliverable Review Screen | `src/features/projects/components/ReviewDeliverableModal.tsx` | Client Deliverable Approval / Revisions |
-| **SCRUM-47** | Complete Approval & Change Request Flow | `src/features/projects/components/ReviewDeliverableModal.tsx`, `MilestonesTimelineScreen.tsx` | Complete Approval & Change Request Flow |
-| **SCRUM-39** | Implement Tasks Screen | `src/features/tasks/screens/TasksScreen.tsx` | Tasks Catalog & Filtering |
-| **SCRUM-40** | Implement Task Details Screen | `src/features/tasks/screens/TasksScreen.tsx` | Task Information & Editing |
-| **SCRUM-41** | Implement Delete Task Flow | `src/features/tasks/screens/TasksScreen.tsx` | Task Deletion Confirmation Flow |
-| Support | Native Attachment Utility | `src/services/attachments.ts` | Document Picker & File System |
-| Support | Real-time Cloud Sync | `src/services/firebase.ts`, `src/services/firebaseService.ts` | Two-way Firestore Synchronization |
+| **Contract & Scope Management** | Perera K.A (IT23567924) | `contract-terms.tsx`, `contract-preview.tsx`, `contract-review.tsx`, `scope.tsx`, `ForgotPasswordScreen.tsx` | `Contract-and-Scope-Management` |
+| **Payment & Invoice Management** | Nimnadi S.D.T (IT23569218) | `finance.tsx`, `FinanceScreen.tsx`, `CreateInvoiceModal.tsx`, `SubmitPaymentModal.tsx` | `Invoice-and-Payment-Tracking` |
+| **Deliverable & Approval Management** | Illankoon I.A.K.S (IT23554818) | `milestones.tsx`, `tasks.tsx`, `SubmitDeliverableModal.tsx`, `ReviewDeliverableModal.tsx` | `Milestone-and-Approval-Management` |
+| **Client & Project Management** | Silva S.T.S (IT23550780) | `projects.tsx`, `clients.tsx`, `messages.tsx`, `CreateProjectModal.tsx`, `AddClientModal.tsx` | `Client-and-Project-Management` |
+| **Common Application Core** | All Members | `_layout.tsx`, `home.tsx`, `AppContext.tsx`, `firebase.ts`, `rubrics.tsx` | `main` |
