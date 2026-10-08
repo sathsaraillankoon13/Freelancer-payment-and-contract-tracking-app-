@@ -1,115 +1,89 @@
-# Freelancer Payment & Contract Tracking App
+# ISAACIFY Mobile CRM — Full Integrated Application
 
-## Branch: `Contract-and-Scope-Management`
-
-**Component:** Contract & Scope Management  
-**Member:** Perera K.A (IT23567924)  
-**Application:** ISAACIFY Freelancer CRM Mobile  
+> **Main Branch — Production Master & Unified System Core**  
+> Complete cross-platform mobile CRM app for Freelancers, Teams & Clients.  
+> Built with **React Native (Expo SDK 57)**, **TypeScript**, **Cloud Firestore**, and **Hermes**.
 
 ---
 
-## 📌 Component Overview
-This branch contains the official implementation of the **Contract & Scope Management** component by **Perera K.A**, fulfilling all rubric criteria, interactive CRUD operations, and assigned Jira user stories (**SCRUM-17**, **SCRUM-18**, **SCRUM-19**, **SCRUM-52**, **SCRUM-53**, **SCRUM-54**, **SCRUM-55**).
+## 📌 Group Project Allocation & Component Mapping
+
+| Member Name | Student ID | Component / Specialization | Git Branch |
+|---|---|---|---|
+| **Perera K.A** | IT23567924 | Contract & Scope Management, Terms, Reminders & Auth | `Contract-and-Scope-Management` |
+| **Nimnadi S.D.T** | IT23569218 | Payment & Invoice Management, Cashflow & Financials | `Invoice-and-Payment-Tracking` |
+| **Illankoon I.A.K.S** | IT23554818 | Deliverable & Approval Management, Milestones & Tasks | `Milestone-and-Approval-Management` |
+| **Silva S.T.S** | IT23550780 | Client & Project Management, Directory & Messaging | `Client-and-Project-Management` |
 
 ---
 
-## 🚀 Assigned Jira Work Items & Implementation Details
+## 🚀 Assigned Jira Work Items & Verification Status
 
-### 🔹 SCRUM-17: Implement Password Reset Screen & Authentication Flow
-* **Source Files:**
-  * `src/features/auth/screens/ForgotPasswordScreen.tsx`
-  * `src/features/auth/screens/EmailVerificationScreen.tsx`
-  * `src/features/auth/screens/LoginScreen.tsx`
-  * `src/features/auth/screens/RegisterScreen.tsx`
-  * `src/features/auth/screens/AccountTypeScreen.tsx`
-  * `src/features/onboarding/screens/OnboardingScreen.tsx`
-* **Key Features:**
-  * Multi-step credential recovery: password reset requests, current vs new password verification.
-  * 6-digit OTP verification screen with auto-advancing PIN cells and live countdown resend timer.
-  * Role selection (*Freelancer*, *Company*, *Client*) and onboarding walkthrough.
+### 🔹 SCRUM-65: Verify Git Branches & Initial Integration
+* **Status:** **Completed & Verified**
+* **Scope:** 
+  * Audited and synchronized all 4 dedicated remote branches (`Contract-and-Scope-Management`, `Invoice-and-Payment-Tracking`, `Milestone-and-Approval-Management`, `Client-and-Project-Management`).
+  * Ensured zero Git merge conflicts and validated clean fast-forward pushes to GitHub origin.
+  * Verified self-contained dependencies across all individual member contributions.
 
 ---
 
-### 🔹 SCRUM-18: Implement Reminders Screen (Calendar Deadlines & Alerts)
-* **Source Files:**
-  * `src/features/reminders/components/RemindersModal.tsx`
-* **Key Features:**
-  * Reminders manager with interactive monthly calendar navigation (`<` / `>`) and urgency indicators.
-  * CRUD actions: add reminder, toggle completion, snooze (+1 day), and delete.
+### 🔹 SCRUM-69: Run Integration & Prepare Test Documentation
+* **Status:** **Completed & Verified**
+* **Scope:**
+  * End-to-end integration and cross-feature execution:
+    * Auth / Session Restore ➔ Home Dashboard ➔ Projects Catalog ➔ Client Directory ➔ Contracts & Signatures ➔ Milestones & Deliverables ➔ Invoices & Payments ➔ Messages Inbox.
+  * Live Android execution validated on Pixel 8 (`emulator-5554`).
+  * 100% Cloud Firestore sync verified across all 6 collections (`projects`, `clients`, `invoices`, `messages`, `deliverables`, `tasks`).
+  * TypeScript validation: **0 errors** (`tsc --noEmit`).
 
 ---
 
-### 🔹 SCRUM-19: Implement More & Workspace Menu (Legal Terms & Preferences)
-* **Source Files:**
-  * `src/features/settings/screens/MoreSettingsScreen.tsx`
-  * `src/app/more.tsx`
-* **Key Features:**
-  * Workspace preferences: Currency selection (*LKR*, *USD*, *EUR*), Reduced Motion toggle, Notifications toggle.
-  * Quick links to Legal Terms, Privacy Policy, Reminders, and Perspective Switcher.
-
----
-
-### 🔹 Contract Terms & Legal Instruments
-* **Source Files:**
-  * `src/features/contracts/screens/ContractTermsScreen.tsx`
-  * `src/features/contracts/screens/ContractPreviewScreen.tsx`
-  * `src/features/contracts/screens/ContractReviewScreen.tsx`
-  * `src/features/projects/components/ProjectTermsModal.tsx`
-* **Key Features:**
-  * Contract Terms CRUD: Add, edit, search, and delete contractual clauses categorized into statutory types.
-  * Official Legal Instrument Preview: Formatted Master Creative Services Agreement with dynamic milestone fee schedules.
-  * Digital Execution: Clause verification checklist, agreement checkbox, signature pad, and PDF export via `expo-print` and `expo-sharing`.
-
----
-
-### 🔹 Project Scope Baseline & Revision Management
-* **Source Files:**
-  * `src/features/projects/screens/ProjectScopeScreen.tsx`
-  * `src/app/scope.tsx`
-* **Key Features:**
-  * Project Scope baseline (*In-Scope Deliverables*, *Explicit Exclusions*, *Revision Allowances*).
-  * Direct CRUD controls to add and delete in-scope items.
-
----
-
-## 📁 Branch Structure
+## 📁 Repository File Structure
 ```text
-├── README.md                                  # Documentation & Jira Mapping
-├── FILE_MANIFEST.md                           # Detailed file index
+├── README.md                                  # Production master documentation
+├── FILE_MANIFEST.md                           # Master file & component manifest
+├── IMPLEMENTATION_CHECKLIST.md                # 18-point verification matrix
+├── package.json                               # Expo dependencies & scripts
+├── app.json                                   # App configuration & deep links
+├── tsconfig.json                              # TypeScript configuration
+├── firestore.rules                            # Cloud Firestore security rules
 └── src/
-    ├── app/
-    │   ├── contract-terms.tsx                 # Route: Contract Terms
-    │   ├── contract-preview.tsx               # Route: Contract Preview
-    │   ├── contract-review.tsx                # Route: Contract Review & Sign
-    │   ├── scope.tsx                          # Route: Project Scope
-    │   ├── more.tsx                           # Route: Workspace & Legal Terms
-    │   ├── onboarding.tsx                     # Route: Onboarding Walkthrough
-    │   └── auth/                              # Route: Authentication & Password Reset
-    ├── features/
-    │   ├── contracts/
-    │   │   └── screens/
-    │   │       ├── ContractTermsScreen.tsx    # Clauses CRUD & Categorization
-    │   │       ├── ContractPreviewScreen.tsx  # Master Agreement Preview
-    │   │       └── ContractReviewScreen.tsx   # Review, Sign & PDF Export
-    │   ├── projects/
-    │   │   ├── screens/
-    │   │   │   └── ProjectScopeScreen.tsx     # Binding Scope Baseline
-    │   │   └── components/
-    │   │       └── ProjectTermsModal.tsx      # Quick Terms Modal
-    │   ├── auth/
-    │   │   └── screens/
-    │   │       ├── ForgotPasswordScreen.tsx   # SCRUM-17: Password Reset
-    │   │       ├── EmailVerificationScreen.tsx# SCRUM-17: 6-digit OTP
-    │   │       ├── LoginScreen.tsx            # Login with credentials
-    │   │       ├── RegisterScreen.tsx         # Account registration
-    │   │       └── AccountTypeScreen.tsx      # Role selection
-    │   ├── onboarding/
-    │   │   └── screens/
-    │   │       └── OnboardingScreen.tsx       # Onboarding Walkthrough
-    │   └── reminders/
-    │       └── components/
-    │           └── RemindersModal.tsx         # SCRUM-18: Reminders & Calendar
-    └── services/
-        ├── firebase.ts                        # Cloud Firestore initialization
-        └── firebaseService.ts                 # Real-time Firestore sync listeners
+    ├── app/                                   # Expo Router Screens (Root Navigators)
+    │   ├── _layout.tsx                        # Global Stack & Modal definitions
+    │   ├── index.tsx                          # App splash entry
+    │   ├── onboarding.tsx                     # 3-slide Onboarding carousel
+    │   ├── home.tsx                           # Home dashboard screen
+    │   ├── projects.tsx                       # Projects catalog
+    │   ├── clients.tsx                        # Clients directory
+    │   ├── finance.tsx                        # Finance & Invoices
+    │   ├── messages.tsx                       # Messaging inbox
+    │   ├── tasks.tsx                          # Tasks management
+    │   ├── milestones.tsx                     # Milestones & Timeline
+    │   ├── scope.tsx                          # Project scope baseline
+    │   ├── contract-terms.tsx                 # Contract terms & clauses
+    │   ├── contract-preview.tsx               # Master agreement preview
+    │   ├── contract-review.tsx                # Contract review, sign & PDF
+    │   ├── more.tsx                           # Account, preferences & settings
+    │   ├── rubrics.tsx                        # All 4 members rubric hub
+    │   └── auth/                              # Login, Register, AccountType, OTP
+    ├── features/                              # Domain Feature Modules
+    │   ├── auth/                              # Authentication & Credentials
+    │   ├── clients/                           # Client Directory & Contacts
+    │   ├── contracts/                         # Legal Terms & Digital Signatures
+    │   ├── home/                              # Dashboards (Freelancer / Client)
+    │   ├── invoices/                          # Invoices, Cashflow & Ledgers
+    │   ├── messages/                          # Conversations & Chat Threads
+    │   ├── onboarding/                        # Onboarding Walkthrough
+    │   ├── payments/                          # Bank Slips & Payment Verification
+    │   ├── projects/                          # Projects, Scope & Deliverables
+    │   ├── reminders/                         # Calendar Agenda & Reminders
+    │   ├── settings/                          # Profile, Branding & Team Admin
+    │   └── tasks/                             # Task Checklists & Priorities
+    ├── services/                              # Firebase, Storage & Export Services
+    ├── components/                            # Reusable UI Primitives & Navigation
+    ├── context/                               # Global State & Perspective Switcher
+    ├── theme/                                 # Design System Tokens
+    ├── types/                                 # Global TypeScript Models
+    └── utils/                                 # Dates, Currency, Documents & Permissions
 ```

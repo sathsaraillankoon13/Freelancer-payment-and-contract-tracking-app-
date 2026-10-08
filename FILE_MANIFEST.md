@@ -1,25 +1,13 @@
-# File Manifest — Contract & Scope Management
+# Master File Manifest — Full Application Integration
 
-**Component:** Contract & Scope Management  
-**Branch:** `Contract-and-Scope-Management`  
-**Member:** Perera K.A (IT23567924)  
-**Assigned Jira Work Items:** SCRUM-17, SCRUM-18, SCRUM-19, SCRUM-52, SCRUM-53, SCRUM-54, SCRUM-55  
+**Application:** ISAACIFY Freelancer CRM Mobile  
+**Branch:** `main`  
+**Assigned Jira Work Items:** SCRUM-65, SCRUM-69 (Integration & Verification)  
 
-| File Path | Description / Purpose | Work Item |
-|---|---|---|
-| `src/features/contracts/screens/ContractTermsScreen.tsx` | Contract terms editor, clause search, category filters | Contract Terms CRUD |
-| `src/features/contracts/screens/ContractPreviewScreen.tsx` | Official Legal Instrument Master Creative Services preview | Legal Contract Preview |
-| `src/features/contracts/screens/ContractReviewScreen.tsx` | Digital signature pad, clause verification checklist, PDF export | Review & Sign |
-| `src/features/projects/screens/ProjectScopeScreen.tsx` | Project scope baseline, in-scope deliverables, exclusions & revisions | Scope Baseline |
-| `src/features/projects/components/ProjectTermsModal.tsx` | Modal popup for editing contract terms within project context | Terms Modal |
-| `src/features/auth/screens/ForgotPasswordScreen.tsx` | Password reset recovery screen with verification flow | **SCRUM-17** |
-| `src/features/auth/screens/EmailVerificationScreen.tsx` | 6-digit OTP email verification screen with timer | **SCRUM-17** |
-| `src/features/reminders/components/RemindersModal.tsx` | Deadline reminders manager with status, snooze & delete | **SCRUM-18** |
-| `src/features/settings/screens/MoreSettingsScreen.tsx` | More menu, legal links, currency and workspace settings | **SCRUM-19** |
-| `src/features/auth/screens/LoginScreen.tsx` | User login screen with credentials validation | Auth & Onboarding |
-| `src/features/auth/screens/RegisterScreen.tsx` | User registration and workspace initialization screen | Auth & Onboarding |
-| `src/features/auth/screens/AccountTypeScreen.tsx` | Freelancer / Client role selection screen | Auth & Onboarding |
-| `src/features/auth/screens/SplashScreen.tsx` | App launch splash screen with branding animation | Auth & Onboarding |
-| `src/features/onboarding/screens/OnboardingScreen.tsx` | 3-slide interactive onboarding carousel | Auth & Onboarding |
-| `src/services/firebase.ts` | Firebase initialization with mobile long polling | Cloud Firestore Sync |
-| `src/services/firebaseService.ts` | Real-time two-way sync for projects, clients & scope | Cloud Firestore Sync |
+| Component | Member Responsible | Key Entry Points | Primary Git Branch |
+|---|---|---|---|
+| **Contract & Scope Management** | Perera K.A (IT23567924) | `contract-terms.tsx`, `contract-preview.tsx`, `contract-review.tsx`, `scope.tsx`, `ForgotPasswordScreen.tsx` | `Contract-and-Scope-Management` |
+| **Payment & Invoice Management** | Nimnadi S.D.T (IT23569218) | `finance.tsx`, `FinanceScreen.tsx`, `CreateInvoiceModal.tsx`, `SubmitPaymentModal.tsx` | `Invoice-and-Payment-Tracking` |
+| **Deliverable & Approval Management** | Illankoon I.A.K.S (IT23554818) | `milestones.tsx`, `tasks.tsx`, `SubmitDeliverableModal.tsx`, `ReviewDeliverableModal.tsx` | `Milestone-and-Approval-Management` |
+| **Client & Project Management** | Silva S.T.S (IT23550780) | `projects.tsx`, `clients.tsx`, `messages.tsx`, `CreateProjectModal.tsx`, `AddClientModal.tsx` | `Client-and-Project-Management` |
+| **Common Application Core** | All Members | `_layout.tsx`, `home.tsx`, `AppContext.tsx`, `firebase.ts`, `rubrics.tsx` | `main` |
