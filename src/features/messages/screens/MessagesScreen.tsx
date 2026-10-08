@@ -26,6 +26,7 @@ export const MessagesScreen: React.FC = () => {
   } = useAppContext();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'unread'>('all');
   const isClient = currentUser?.role === 'client';
 
   // Build conversation list
@@ -96,6 +97,7 @@ export const MessagesScreen: React.FC = () => {
   }
 
   const filteredConversations = conversations.filter((conv) => {
+    if (filterType === 'unread' && conv.unreadCount === 0) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -165,6 +167,27 @@ export const MessagesScreen: React.FC = () => {
               <Feather name="x" size={16} color={colors.textMuted} />
             </TouchableOpacity>
           )}
+        </View>
+
+        {/* Conversation Filter Chips */}
+        <View style={styles.chipRow}>
+          <TouchableOpacity
+            style={[styles.chip, filterType === 'all' && styles.chipActive]}
+            onPress={() => setFilterType('all')}
+          >
+            <Text style={[styles.chipText, filterType === 'all' && styles.chipTextActive]}>
+              All ({conversations.length})
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.chip, filterType === 'unread' && styles.chipActive]}
+            onPress={() => setFilterType('unread')}
+          >
+            <Text style={[styles.chipText, filterType === 'unread' && styles.chipTextActive]}>
+              Unread ({conversations.filter((c) => c.unreadCount > 0).length})
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Conversation List */}
@@ -333,6 +356,32 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.regular,
     fontSize: 14,
     color: colors.textPrimary,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#ECEAF5',
+  },
+  chipActive: {
+    backgroundColor: colors.buttonPrimary,
+    borderColor: colors.buttonPrimary,
+  },
+  chipText: {
+    fontFamily: typography.fonts.medium,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+    fontFamily: typography.fonts.bold,
   },
   conversationCard: {
     flexDirection: 'row',

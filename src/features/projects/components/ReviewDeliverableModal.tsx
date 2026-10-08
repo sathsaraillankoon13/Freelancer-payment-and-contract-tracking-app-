@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Share,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +38,19 @@ export const ReviewDeliverableModal: React.FC = () => {
   const [showFeedbackInput, setShowFeedbackInput] = useState(false);
 
   if (!deliverable) return null;
+
+  const handleShareDeliverableLink = async () => {
+    const link = `https://freelancer-app-d9103.web.app/deliverables/${deliverable.id}`;
+    try {
+      await Share.share({
+        title: deliverable.deliverableName,
+        message: `ISAACIFY Deliverable: "${deliverable.deliverableName}" (${deliverable.version || 'v1'}). Review and sign-off at:\n${link}`,
+        url: link,
+      });
+    } catch {
+      Alert.alert('Share Link Ready', `Deliverable Access Link:\n${link}`);
+    }
+  };
 
   const handleApprove = () => {
     reviewDeliverable(deliverable.id, 'approved', 'Looks great! Approved for final deployment.');
@@ -176,23 +190,58 @@ export const ReviewDeliverableModal: React.FC = () => {
             </View>
           </View>
 
-          {/* Deliverable File Card */}
+          {/* File Sharing Section (HCI Page 8: Simple file list with clear sharing status) */}
           <View style={styles.card}>
             <View style={styles.fileCardHeader}>
               <View style={styles.fileTitleRow}>
-                <Feather name="paperclip" size={16} color={colors.buttonPrimary} />
-                <Text style={styles.fileSectionTitle}>Deliverable Files (1)</Text>
+                <Feather name="share-2" size={16} color={colors.buttonPrimary} />
+                <Text style={styles.fileSectionTitle}>Shared Files & Access</Text>
               </View>
-              <View style={styles.versionBadge}>
-                <Text style={styles.versionBadgeText}>{(deliverable.version || 'v1').toUpperCase()} Final Draft</Text>
+              <View style={styles.sharingStatusBadge}>
+                <View style={styles.sharingStatusDot} />
+                <Text style={styles.sharingStatusText}>Shared with Client</Text>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.filePreviewContainer} onPress={() => { void openAttachment(deliverable.attachment).catch(error => Alert.alert('File unavailable', error.message)); }}>
-              <MaterialCommunityIcons name="file-document-outline" size={44} color={colors.buttonPrimary} />
-              <Text style={styles.filePreviewName}>{deliverable.fileName}</Text>
-              <Text style={styles.filePreviewSub}>Open / share file</Text>
-            </TouchableOpacity>
+            <View style={styles.fileListCard}>
+              <View style={styles.fileListLeft}>
+                <View style={styles.fileListIconBox}>
+                  <MaterialCommunityIcons name="file-document-outline" size={28} color={colors.buttonPrimary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fileListName} numberOfLines={1}>
+                    {deliverable.fileName}
+                  </Text>
+                  <Text style={styles.fileListMeta}>
+                    {deliverable.fileSize || '3.2 MB'} • {(deliverable.version || 'v1').toUpperCase()} • Active Link
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.fileQuickActionsRow}>
+                <TouchableOpacity
+                  style={styles.fileQuickActionBtn}
+                  onPress={() => {
+                    void openAttachment(deliverable.attachment).catch((error) =>
+                      Alert.alert('File unavailable', error.message)
+                    );
+                  }}
+                >
+                  <Feather name="eye" size={13} color={colors.textPrimary} />
+                  <Text style={styles.fileQuickActionText}>Open File</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.fileQuickActionBtn, { backgroundColor: colors.primarySoft }]}
+                  onPress={handleShareDeliverableLink}
+                >
+                  <Feather name="link" size={13} color={colors.buttonPrimary} />
+                  <Text style={[styles.fileQuickActionText, { color: colors.buttonPrimary }]}>
+                    Copy Share Link
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           {/* Submission Timeline */}
@@ -519,6 +568,84 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.medium,
     fontSize: 11,
     color: colors.buttonPrimary,
+  },
+  sharingStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  sharingStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#15803D',
+  },
+  sharingStatusText: {
+    fontFamily: typography.fonts.medium,
+    fontSize: 11,
+    color: '#15803D',
+  },
+  fileListCard: {
+    backgroundColor: '#FAF9FD',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#ECE7F6',
+  },
+  fileListLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  fileListIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ECE7F6',
+  },
+  fileListName: {
+    fontFamily: typography.fonts.bold,
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  fileListMeta: {
+    fontFamily: typography.fonts.regular,
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  fileQuickActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ECE7F6',
+    paddingTop: 10,
+  },
+  fileQuickActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2D9F3',
+  },
+  fileQuickActionText: {
+    fontFamily: typography.fonts.medium,
+    fontSize: 12,
+    color: colors.textPrimary,
   },
   filePreviewContainer: {
     alignItems: 'center',

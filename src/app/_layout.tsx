@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { LogBox } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -9,14 +10,17 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
+import { AppProvider } from '@/context/AppContext';
+import { GlobalModals } from '@/components/navigation/GlobalModals';
+
+// Silence non-critical warning toasts in dev environment
+LogBox.ignoreAllLogs(true);
 
 // Prevent native splash screen from auto-hiding before asset readiness
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-import { AppProvider } from '@/context/AppContext';
-
 export default function RootLayout() {
-  const [isReady, setIsReady] = useState(false);
+  const [fallbackReady, setFallbackReady] = useState(false);
 
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
@@ -24,18 +28,22 @@ export default function RootLayout() {
     DMSans_700Bold,
   });
 
+  const isReady = Boolean(fontsLoaded || fontError || fallbackReady);
+
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      setIsReady(true);
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (isReady) {
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded, fontError]);
+  }, [isReady]);
 
   useEffect(() => {
     // Safety fallback so splash never hangs indefinitely
     const timer = setTimeout(() => {
-      setIsReady(true);
-      SplashScreen.hideAsync().catch(() => {});
+      setFallbackReady(true);
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -54,8 +62,27 @@ export default function RootLayout() {
             animation: 'fade',
           }}
         >
-          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="index" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="auth/login" />
+          <Stack.Screen name="auth/register" />
+          <Stack.Screen name="auth/account-type" />
+          <Stack.Screen name="auth/forgot-password" />
+          <Stack.Screen name="auth/email-verification" />
+          <Stack.Screen name="home" />
+          <Stack.Screen name="tasks" />
+          <Stack.Screen name="scope" />
+          <Stack.Screen name="contract-terms" />
+          <Stack.Screen name="contract-preview" />
+          <Stack.Screen name="contract-review" />
+          <Stack.Screen name="clients" />
+          <Stack.Screen name="rubrics" />
+          <Stack.Screen name="projects" />
+          <Stack.Screen name="finance" />
+          <Stack.Screen name="messages" />
+          <Stack.Screen name="more" />
         </Stack>
+        <GlobalModals />
       </AppProvider>
     </SafeAreaProvider>
   );

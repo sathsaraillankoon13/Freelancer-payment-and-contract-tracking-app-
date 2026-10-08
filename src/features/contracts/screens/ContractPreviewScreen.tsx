@@ -17,6 +17,8 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { ScreenBackdrop } from '@/components/ui/Surface';
 
+import { exportContractPdf } from '@/services/contractExport';
+
 export const ContractPreviewScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { projects, selectedProjectId } = useAppContext();
@@ -27,19 +29,20 @@ export const ContractPreviewScreen: React.FC = () => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `ISAACIFY Master Service Agreement: ${project?.title || 'Creative Project'} for ${project?.clientName || 'Client'}. Review and sign digitally at https://isaacify.app/contracts/agr-2026-004`,
+        message: `ISAACIFY Master Service Agreement: ${project?.title || 'Creative Project'} for ${project?.clientName || 'Client'}. Review and sign digitally at https://freelancer-app-d9103.web.app/contracts/agr-2026-004`,
       });
     } catch {
       // ignore
     }
   };
 
-  const handleExportPDF = () => {
-    Alert.alert(
-      'Exporting Contract PDF',
-      'Legal Service Agreement compiled into high-resolution PDF format with cryptographic signature hashes.',
-      [{ text: 'OK' }]
-    );
+  const handleExportPDF = async () => {
+    try {
+      if (!project) return;
+      await exportContractPdf(project, project.clientName || 'Client');
+    } catch (err: any) {
+      Alert.alert('Export Notice', err?.message || 'Could not export contract PDF.');
+    }
   };
 
   return (

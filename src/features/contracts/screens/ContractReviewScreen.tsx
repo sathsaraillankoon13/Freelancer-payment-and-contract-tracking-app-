@@ -17,6 +17,7 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { ScreenBackdrop } from '@/components/ui/Surface';
+import { exportContractPdf } from '@/services/contractExport';
 
 export const ContractReviewScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -62,6 +63,15 @@ export const ContractReviewScreen: React.FC = () => {
     setAmendmentNote('');
   };
 
+  const handleExportPdf = async () => {
+    try {
+      if (!project) return;
+      await exportContractPdf(project, signerName);
+    } catch (err: any) {
+      Alert.alert('Export Notice', err?.message || 'Could not export contract PDF.');
+    }
+  };
+
   const handleSignContract = () => {
     if (!termsAccepted) {
       Alert.alert('Acceptance Required', 'Please check the box agreeing to the contract terms before signing.');
@@ -77,6 +87,10 @@ export const ContractReviewScreen: React.FC = () => {
       'Contract Executed Successfully! 🎉',
       `The agreement for ${project?.title || 'Project'} has been signed by ${signerName} and is now legally active.`,
       [
+        {
+          text: 'Export Signed PDF 📄',
+          onPress: () => { void handleExportPdf(); },
+        },
         {
           text: 'View Project Overview',
           onPress: () => router.push('/projects'),
@@ -327,7 +341,15 @@ export const ContractReviewScreen: React.FC = () => {
           onPress={() => router.push('/contract-preview')}
         >
           <Feather name="file-text" size={16} color={colors.textSecondary} />
-          <Text style={styles.previewBtnText}>Full Preview</Text>
+          <Text style={styles.previewBtnText}>Preview</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.previewBtn}
+          onPress={() => { void handleExportPdf(); }}
+        >
+          <Feather name="download" size={16} color={colors.buttonPrimary} />
+          <Text style={[styles.previewBtnText, { color: colors.buttonPrimary }]}>PDF</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -344,7 +366,7 @@ export const ContractReviewScreen: React.FC = () => {
             color={colors.white}
           />
           <Text style={styles.signBtnText}>
-            {isContractSigned ? 'Agreement Signed' : 'Sign & Execute Agreement'}
+            {isContractSigned ? 'Signed' : 'Sign Agreement'}
           </Text>
         </TouchableOpacity>
       </View>

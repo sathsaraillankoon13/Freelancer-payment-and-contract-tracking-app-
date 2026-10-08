@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Share,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -1135,6 +1136,32 @@ export const ProjectDetailsModal: React.FC = () => {
                       <Feather name="file" size={14} color={colors.buttonPrimary} />
                       <Text style={styles.delFileName}>{del.fileName}</Text>
                       <Text style={styles.delMetaText}>• By {del.author} • {del.submittedText}</Text>
+                    </View>
+
+                    {/* File Sharing Status & Quick Action (HCI Page 8) */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, marginTop: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#15803D' }} />
+                        <Text style={{ fontSize: 11, fontFamily: typography.fonts.medium, color: '#15803D' }}>Shared with Client</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EDE9FE', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}
+                        onPress={async () => {
+                          const link = `https://freelancer-app-d9103.web.app/deliverables/${del.id}`;
+                          try {
+                            await Share.share({
+                              title: del.deliverableName,
+                              message: `ISAACIFY Deliverable: "${del.deliverableName}" (${del.version || 'v1'}). Access link:\n${link}`,
+                              url: link,
+                            });
+                          } catch {
+                            Alert.alert('Share Link Ready', link);
+                          }
+                        }}
+                      >
+                        <Feather name="link" size={12} color={colors.buttonPrimary} />
+                        <Text style={{ fontSize: 11, fontFamily: typography.fonts.bold, color: colors.buttonPrimary }}>Copy Link</Text>
+                      </TouchableOpacity>
                     </View>
 
                     {del.authorNote ? (

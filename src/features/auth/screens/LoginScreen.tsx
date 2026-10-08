@@ -71,11 +71,7 @@ export const LoginScreen: React.FC = () => {
   };
 
   const handleForgotPassword = () => {
-    Alert.alert(
-      'Reset Password',
-      'Password reset instructions will be sent to your email address.',
-      [{ text: 'OK' }]
-    );
+    router.push('/auth/forgot-password');
   };
 
   const handleCreateAccount = () => {
