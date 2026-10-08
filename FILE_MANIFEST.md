@@ -2,7 +2,8 @@
 
 **Component:** Payment & Invoice Management  
 **Branch:** `Invoice-and-Payment-Tracking`  
-**Assigned Jira Work Items:** SCRUM-24, SCRUM-25, SCRUM-26, SCRUM-27, SCRUM-28, SCRUM-30, SCRUM-31, SCRUM-32, SCRUM-33  
+**Member:** Nimnadi S.D.T (IT23569218)  
+**Assigned Jira Work Items:** SCRUM-24, SCRUM-25, SCRUM-26, SCRUM-27, SCRUM-28, SCRUM-30, SCRUM-31, SCRUM-32, SCRUM-33, SCRUM-34  
 
 | Jira Key | Work Item | File Path | Functional Area |
 |---|---|---|---|
@@ -10,6 +11,7 @@
 | **SCRUM-28** | Implement Invoices Screen | `src/features/invoices/screens/FinanceScreen.tsx` | Invoice Directory & Filtering |
 | **SCRUM-30** | Implement Create/Edit Invoice Screen | `src/features/invoices/components/CreateInvoiceModal.tsx` | Dynamic Multi-item Invoice Builder |
 | **SCRUM-31** | Implement Payments & History Screen - Page 6 | `src/features/payments/components/SubmitPaymentModal.tsx` | Payment Submission & Verification Ledger |
+| **SCRUM-34** | Complete Expense & Invoice Detail Flow | `src/features/invoices/screens/FinanceScreen.tsx`, `RecordTransactionModal.tsx` | Complete Expense Logging & Invoice Flow |
 | **SCRUM-32** | Implement Client Home Screen | `src/features/home/components/ClientHomeView.tsx` | Client Dashboard & Projects Overview |
 | **SCRUM-33** | Implement Notifications Screen | `src/features/home/components/NotificationCenterModal.tsx` | Notification Center & Alert Badges |
 | **SCRUM-24** | Implement Profile Screen | `src/features/settings/screens/MoreSettingsScreen.tsx` | User Profile & Perspective Switcher |

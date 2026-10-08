@@ -2,13 +2,14 @@
 
 ## Branch: `Invoice-and-Payment-Tracking`
 
-**Component:** Invoice & Payment Tracking  
+**Component:** Payment & Invoice Management  
+**Member:** Nimnadi S.D.T (IT23569218)  
 **Application:** ISAACIFY Freelancer CRM Mobile  
 
 ---
 
 ## 📌 Component Overview
-This branch contains the official implementation of the **Invoice and Payment Tracking** component for the ISAACIFY mobile application. It covers full end-to-end finance overview dashboards, dynamic multi-item invoice creation, client bank payment submissions, transaction audit ledgers, client home overview, in-app notification center, user profiles, and calendar schedules.
+This branch contains the official implementation of the **Payment & Invoice Management** component for the ISAACIFY mobile application. It covers full end-to-end finance overview dashboards, dynamic multi-item invoice creation, client bank payment submissions, transaction audit ledgers, client home overview, in-app notification center, user profiles, and calendar schedules.
 
 ---
 
@@ -57,6 +58,18 @@ This branch contains the official implementation of the **Invoice and Payment Tr
   * Client payment submission modal with bank reference IDs, transaction notes, and bank slip image attachments.
   * Provider payment verification workflow: verify receipt or reject invalid payments with balance safety checks preventing overpayments.
   * Comprehensive transaction history ledger tracking both income and expense categories.
+
+---
+
+### 🔹 SCRUM-34: Complete Expense & Invoice Detail Flow
+* **Source Files:**
+  * `src/features/invoices/screens/FinanceScreen.tsx`
+  * `src/features/invoices/components/RecordTransactionModal.tsx`
+  * `src/features/invoices/components/CreateInvoiceModal.tsx`
+* **Key Features:**
+  * Complete expense logging with category attribution (Software, Office, Travel, Subcontractor).
+  * Real-time cashflow re-calculation: Net Cash Profit = verified income - paid expenses.
+  * Comprehensive invoice detail inspection, printable PDF receipt sharing, and void/cancellation safeguards.
 
 ---
 
@@ -112,11 +125,11 @@ This branch contains the official implementation of the **Invoice and Payment Tr
     ├── features/
     │   ├── invoices/
     │   │   ├── screens/
-    │   │   │   └── FinanceScreen.tsx          # SCRUM-27 & 28: Finance Overview & Invoices
+    │   │   │   └── FinanceScreen.tsx          # SCRUM-27 & 28 & 34: Finance Overview & Invoices
     │   │   └── components/
     │   │       ├── CashflowChart.tsx          # Cashflow bar chart visualizer
     │   │       ├── CreateInvoiceModal.tsx     # SCRUM-30: Create/Edit Invoice Screen
-    │   │       └── RecordTransactionModal.tsx # Ledger recording modal
+    │   │       └── RecordTransactionModal.tsx # SCRUM-34: Ledger recording modal
     │   ├── payments/
     │   │   └── components/
     │   │       └── SubmitPaymentModal.tsx     # SCRUM-31: Payments & Verification Screen

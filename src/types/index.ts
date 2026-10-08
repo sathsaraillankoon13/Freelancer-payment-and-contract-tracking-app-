@@ -1,4 +1,5 @@
 export type UserRole = 'freelancer' | 'team' | 'client';
+export type TeamMemberRole = 'owner' | 'admin' | 'member' | 'collaborator';
 
 export interface User {
   id: string;
@@ -6,75 +7,192 @@ export interface User {
   firstName: string;
   email: string;
   role: UserRole;
-  avatarUrl?: string;
+  teamRole?: TeamMemberRole;
+  workspaceId?: string;
   workspaceName?: string;
   agencyName?: string;
   agencyLead?: string;
+  clientId?: string;
+  phone?: string;
+  avatarUrl?: string;
+  currency?: string;
+  reducedMotion?: boolean;
+  notificationsEnabled?: boolean;
+}
+
+export interface FileAttachment {
+  uri: string;
+  name: string;
+  size?: number;
+  mimeType?: string;
 }
 
 export interface ClientContact {
   id: string;
+  workspaceId?: string;
   name: string;
   companyName: string;
   email: string;
   phone?: string;
   avatarUrl?: string;
   status: 'active' | 'lead' | 'archived';
+  isArchived?: boolean;
   linkedUserId?: string;
+  outstandingBalance?: number;
+  internalNotes?: string;
+  initials?: string;
+  billingAddress?: string;
+  inviteCode?: string;
+  invitationStatus?: 'pending' | 'accepted' | 'invited' | 'none';
+}
+
+export type ProjectStatus =
+  | 'Draft'
+  | 'Pending'
+  | 'In Progress'
+  | 'Client Review'
+  | 'Under Review'
+  | 'Changes Requested'
+  | 'Completed'
+  | 'On Hold'
+  | 'Cancelled';
+
+export type MilestoneStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'client_review'
+  | 'approved'
+  | 'completed'
+  | 'changes_requested'
+  | 'rejected';
+
+export interface Milestone {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate?: string;
+  status: MilestoneStatus;
+  order?: number;
+  deliverableId?: string;
+  amount?: number;
+  reviewHistory?: any[];
+}
+
+export interface ProjectTerm {
+  id: string;
+  title: string;
+  clause: string;
+  category?: 'Scope & Revisions' | 'Payment & Late Fees' | 'Intellectual Property' | 'Termination' | 'General';
+  isStandard?: boolean;
+  createdAt?: string;
+}
+
+export interface ScopeChangeRequest {
+  id: string;
+  requestedBy: string;
+  description: string;
+  additionalBudget?: number;
+  additionalDays?: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
 }
 
 export interface Project {
   id: string;
+  workspaceId?: string;
   title: string;
+  name?: string;
   clientId: string;
   clientName: string;
   clientInitials: string;
-  status: 'In Progress' | 'Under Review' | 'Completed' | 'On Hold';
+  status: ProjectStatus;
   progressPercentage: number;
   totalTasks: number;
   completedTasks: number;
   currentMilestone: string;
   milestoneRatio: string; // e.g. "2/4"
   dueDate: string; // formatted e.g. "30 Sep 2026"
-  daysLeftText: string; // e.g. "4 days left" or "14 days left"
-  currentFocus: string; // e.g. "Homepage review"
+  startDate?: string;
+  budget?: number;
+  currency?: string;
+  priority?: 'Low' | 'Medium' | 'High';
+  daysLeftText?: string;
+  currentFocus?: string;
+  scopeNotes?: string;
+  revisionLimit?: number;
+  usedRevisions?: number;
+  isArchived?: boolean;
+  proposedScopeChange?: any;
+  assignedTeam?: string[];
+  milestones?: Milestone[];
+  terms?: ProjectTerm[];
+  scopeChanges?: ScopeChangeRequest[];
 }
 
 export interface TaskItem {
   id: string;
+  workspaceId?: string;
   projectId: string;
   title: string;
   projectTitle: string;
-  scheduledTime: string; // e.g. "9:00 AM"
+  description?: string;
+  status?: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  assignee?: string;
+  estimatedHours?: number;
+  scheduledTime?: string;
+  dueDate?: string;
   completed: boolean;
   order: number;
+  priority?: 'Low' | 'Medium' | 'High';
 }
 
 export interface MeetingItem {
   id: string;
+  workspaceId?: string;
+  projectId?: string;
+  clientId?: string;
   title: string;
-  timeText: string; // e.g. "Today at 2:30 PM • Google Meet" or "Today, 2:30 PM • 30 min"
+  timeText: string;
   platform: 'Google Meet' | 'Zoom' | 'Microsoft Teams';
-  participants: string; // e.g. "Kasun & Senuri"
+  participants: string;
   participantInitials: string[];
   joinUrl?: string;
 }
 
+export interface DeliverableHistoryItem {
+  version: string;
+  fileName: string;
+  status: 'action_required' | 'approved' | 'changes_requested';
+  submittedAt: string;
+  clientFeedback?: string;
+  attachment?: FileAttachment;
+}
+
 export interface DeliverableItem {
   id: string;
+  workspaceId?: string;
   projectId: string;
   projectTitle: string;
-  deliverableName: string; // e.g. "Homepage Design • v2"
-  fileName: string; // e.g. "Homepage-v2-final.fig"
+  deliverableName: string;
+  fileName: string;
+  fileSize?: string;
+  fileType?: string;
+  version?: string;
   thumbnailUrl?: string;
   author: string;
-  authorNote: string; // e.g. "Revised spice hero banner & CTAs"
-  submittedText: string; // e.g. "Submitted today"
+  authorNote: string;
+  submittedText: string;
+  submittedAt?: string;
   status: 'action_required' | 'approved' | 'changes_requested';
+  shareStatus?: 'shared' | 'internal' | 'restricted';
+  shareUrl?: string;
+  clientFeedback?: string;
+  attachment?: FileAttachment;
+  history?: DeliverableHistoryItem[];
 }
 
 export interface InvoiceItem {
-  id: string;
+  id?: string;
   description: string;
   quantity: number;
   rate: number;
@@ -88,23 +206,123 @@ export interface PaymentSubmission {
   status: 'pending_review' | 'verified' | 'rejected';
   referenceNumber: string;
   proofUrl?: string;
+  attachment?: FileAttachment;
+  proofAttachment?: string;
+  proofNote?: string;
+  verifiedAt?: string;
+  rejectionReason?: string;
+  paymentMethod?: string;
 }
 
 export interface Invoice {
   id: string;
-  invoiceNumber: string; // e.g. "INV-2026-014"
+  workspaceId?: string;
+  invoiceNumber: string;
   projectId: string;
   projectTitle: string;
   clientId: string;
   clientName: string;
-  totalAmount: number; // e.g. 180000
-  paidAmount: number; // sum of verified payments, e.g. 72000
-  outstandingAmount: number; // e.g. 108000
-  currency: string; // "LKR"
-  dueDate: string; // "30 Sep 2026"
-  status: 'Draft' | 'Sent' | 'Partially Paid' | 'Paid' | 'Overdue';
+  totalAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  currency: string;
+  issueDate?: string;
+  dueDate: string;
+  status: 'Draft' | 'Sent' | 'Partially Paid' | 'Paid' | 'Overdue' | 'Void';
   items: InvoiceItem[];
   payments: PaymentSubmission[];
+  subtotal?: number;
+  discount?: number;
+  taxAmount?: number;
+  taxRate?: number;
+  notes?: string;
+}
+
+export interface TransactionItem {
+  id: string;
+  workspaceId?: string;
+  invoiceId?: string;
+  paymentId?: string;
+  source?: 'payment' | 'manual' | 'expense';
+  title: string;
+  subtitle?: string;
+  amount: number;
+  type: 'income' | 'expense';
+  currency: string;
+  category: string;
+  date: string;
+  occurredAt?: string;
+  receiptUrl?: string;
+  attachment?: FileAttachment;
+}
+
+export interface MessageItem {
+  id: string;
+  workspaceId?: string;
+  clientId: string;
+  projectId?: string;
+  senderId: string;
+  senderName: string;
+  senderRole: UserRole;
+  text: string;
+  timestamp: string;
+  read: boolean;
+  attachment?: FileAttachment;
+  attachmentName?: string;
+  createdAt?: string;
+}
+
+export interface TeamMember {
+  id: string;
+  workspaceId: string;
+  name: string;
+  email: string;
+  role: TeamMemberRole;
+  status: 'active' | 'pending' | 'inactive';
+  assignedProjectIds: string[];
+  linkedUserId?: string;
+  phone?: string;
+}
+
+export interface CommentItem {
+  id: string;
+  workspaceId?: string;
+  targetType: 'project' | 'task' | 'deliverable';
+  targetId: string;
+  authorId: string;
+  authorName: string;
+  authorRole: UserRole;
+  text: string;
+  createdAt: string;
+  visibility: 'internal' | 'shared';
+}
+
+export interface ReminderItem {
+  id: string;
+  workspaceId?: string;
+  title: string;
+  note?: string;
+  dateTime: string;
+  status: 'pending' | 'completed' | 'snoozed';
+  snoozedUntil?: string;
+  linkedType?: 'project' | 'invoice' | 'deliverable' | 'general';
+  linkedId?: string;
+  linkedTitle?: string;
+  priority?: 'low' | 'medium' | 'high';
+  notify?: boolean;
+  type?: string;
+  createdAt?: string;
+}
+
+export interface AppNotification {
+  id: string;
+  workspaceId?: string;
+  recipientId?: string;
+  title: string;
+  message: string;
+  timeAgo: string;
+  unread: boolean;
+  type: 'message' | 'deliverable' | 'invoice' | 'payment' | 'scope';
 }
 
 export interface RecentActivityItem {
@@ -112,16 +330,7 @@ export interface RecentActivityItem {
   title: string;
   authorName: string;
   fileName: string;
-  fileSize: string; // e.g. "2.4 MB"
-  timeAgo: string; // e.g. "2 hours ago"
-  type: 'pdf' | 'figma' | 'image' | 'archive';
-}
-
-export interface AppNotification {
-  id: string;
-  title: string;
-  message: string;
+  fileSize: string;
   timeAgo: string;
-  unread: boolean;
-  type: 'message' | 'deliverable' | 'invoice' | 'payment';
+  type: 'pdf' | 'figma' | 'image' | 'archive';
 }

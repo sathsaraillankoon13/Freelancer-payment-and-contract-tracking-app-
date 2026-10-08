@@ -14,9 +14,11 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 
 interface ButtonProps {
-  title: string;
+  title?: string;
+  label?: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline' | 'text';
+  icon?: string;
   showArrow?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -26,14 +28,18 @@ interface ButtonProps {
 
 export const Button: React.FC<ButtonProps> = ({
   title,
+  label,
   onPress,
   variant = 'primary',
+  icon,
   showArrow = false,
   loading = false,
   disabled = false,
   style,
   textStyle,
 }) => {
+  const buttonTitle = title || label || '';
+  const displayArrow = showArrow || icon === 'arrow-right';
   const isPrimary = variant === 'primary';
   const isOutline = variant === 'outline';
   const isText = variant === 'text';
@@ -67,8 +73,8 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator color={isPrimary ? colors.white : colors.buttonPrimary} />
       ) : (
         <View style={styles.contentRow}>
-          <Text style={labelStyle}>{title}</Text>
-          {showArrow && (
+          <Text style={labelStyle}>{buttonTitle}</Text>
+          {displayArrow && (
             <Feather
               name="arrow-right"
               size={18}
