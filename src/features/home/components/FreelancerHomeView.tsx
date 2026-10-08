@@ -7,6 +7,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
@@ -29,46 +31,33 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
     projects,
     tasks,
     toggleTask,
+    addTask,
     financialSummary,
     metrics,
     activeMeeting,
+    openCreateProjectModal,
+    openAddClientModal,
+    openProjectDetailsModal,
+    openCreateInvoiceModal,
+    openReviewDeliverableModal,
   } = useAppContext();
 
   const activeProject = projects[0];
 
   const handleNewProject = () => {
-    Alert.alert(
-      'New Project',
-      'Create Project flow will be launched in the next step.',
-      [{ text: 'OK' }]
-    );
+    openCreateProjectModal();
   };
 
   const handleAddClient = () => {
-    Alert.alert(
-      'Add Client',
-      'Client Contact onboarding will be opened.',
-      [{ text: 'OK' }]
-    );
+    openAddClientModal();
   };
 
   const handleInvoiceAction = () => {
-    if (onNavigateToFinance) {
-      onNavigateToFinance();
-    } else {
-      Alert.alert('Invoice', 'Navigate to Invoices and Finance management.');
-    }
+    openCreateInvoiceModal();
   };
 
   const handleReviewFeedback = () => {
-    if (onNavigateToMessages) {
-      onNavigateToMessages();
-    } else {
-      Alert.alert(
-        'Homepage Feedback',
-        'Senuri Perera left notes on the homepage deliverable.'
-      );
-    }
+    openReviewDeliverableModal();
   };
 
   const handleJoinCall = () => {
@@ -80,11 +69,21 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
   };
 
   const handleAddTaskPrompt = () => {
-    Alert.alert(
-      'Add Task',
-      'Quick task creation dialog.',
-      [{ text: 'Cancel', style: 'cancel' }, { text: 'Add' }]
-    );
+    if (Alert.prompt) {
+      Alert.prompt('New Task', 'Enter task title:', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Add',
+          onPress: (text?: string) => {
+            if (text && text.trim()) {
+              addTask(text.trim(), activeProject?.title, 'Today');
+            }
+          },
+        },
+      ]);
+    } else {
+      addTask('Homepage responsive QA check', activeProject?.title, 'Today');
+    }
   };
 
   return (
@@ -96,7 +95,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
       {/* Top Greeting Section */}
       <View style={styles.greetingSection}>
         <Text style={styles.greetingTitle}>Hello {currentUser.firstName}!</Text>
-        <Text style={styles.greetingSubtitle}>Here's your work overview.</Text>
+        <Text style={styles.greetingSubtitle}>Here&apos;s your work overview.</Text>
 
         <View style={styles.pillsRow}>
           <View style={[styles.pillBadge, styles.pillPurple]}>
@@ -205,6 +204,61 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Direct Module Navigation Bar */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.workflowRow}
+      >
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/tasks')}
+        >
+          <Feather name="check-square" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Tasks</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/scope')}
+        >
+          <Feather name="target" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Scope</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/contract-terms')}
+        >
+          <Feather name="file-text" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Terms</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/contract-preview')}
+        >
+          <Feather name="eye" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Contract</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/contract-review')}
+        >
+          <Feather name="edit-3" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Review & Sign</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.workflowPill}
+          onPress={() => router.push('/onboarding')}
+        >
+          <Feather name="compass" size={14} color={colors.buttonPrimary} />
+          <Text style={styles.workflowPillText}>Onboarding</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
       {/* Active Project Section */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Active project</Text>
@@ -214,7 +268,11 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
       </View>
 
       {activeProject && (
-        <View style={styles.projectCard}>
+        <TouchableOpacity
+          style={styles.projectCard}
+          activeOpacity={0.85}
+          onPress={() => openProjectDetailsModal(activeProject.id)}
+        >
           <View style={styles.projectTopRow}>
             <View style={styles.projectAvatarBox}>
               <Text style={styles.projectAvatarText}>
@@ -263,7 +321,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
             </View>
             <Text style={styles.daysLeftText}>{activeProject.daysLeftText}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
 
       {/* Upcoming Meeting Section */}
@@ -293,7 +351,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
       {/* Today's Tasks Section */}
       <View style={styles.sectionHeaderRow}>
         <View style={styles.tasksTitleWithBadge}>
-          <Text style={styles.sectionTitle}>Today's tasks</Text>
+          <Text style={styles.sectionTitle}>Today&apos;s tasks</Text>
           <View style={styles.pendingBadge}>
             <Text style={styles.pendingBadgeText}>
               {metrics.pendingTasksCount} pending
@@ -806,6 +864,31 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.regular,
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  workflowRow: {
+    gap: 8,
+    paddingVertical: 12,
+  },
+  workflowPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#EEE8F6',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    shadowColor: '#493068',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  workflowPillText: {
+    fontSize: 12,
+    fontFamily: typography.fonts.bold,
+    color: colors.buttonPrimary,
   },
 });
 

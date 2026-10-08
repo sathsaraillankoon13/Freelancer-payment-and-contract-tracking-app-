@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -52,7 +53,7 @@ export const TeamManagementModal: React.FC = () => {
           <Text style={styles.unauthorizedText}>
             Team management is restricted to Company Owners and Workspace Admins.
           </Text>
-          <TouchableOpacity gradient style={styles.closeBtnSimple} onPress={closeModal}>
+          <TouchableOpacity style={styles.closeBtnSimple} onPress={closeModal}>
             <Text style={styles.closeBtnSimpleText}>Close</Text>
           </TouchableOpacity>
         </View>
@@ -107,7 +108,7 @@ export const TeamManagementModal: React.FC = () => {
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
       onRequestClose={closeModal}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
@@ -262,7 +263,7 @@ export const TeamManagementModal: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: '#FAF9FD',
   },
   header: {
     flexDirection: 'row',
@@ -272,8 +273,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F0EDF7',
-    backgroundColor: 'transparent',
-    paddingBottom: 20
+    backgroundColor: colors.white,
+    paddingBottom: 16,
   },
   backButton: { padding: 6 },
   closeButton: { padding: 6 },
