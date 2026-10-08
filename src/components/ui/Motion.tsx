@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import { useReducedMotion } from '@/context/MotionContext';
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const easeOut = Easing.out(Easing.cubic);
 
 export function MotionTabIcon({ active, children }: React.PropsWithChildren<{ active: boolean }>) {
@@ -36,49 +35,32 @@ export function MotionTabIcon({ active, children }: React.PropsWithChildren<{ ac
   );
 }
 
-/** Same layout and touch behavior as TouchableOpacity, with a restrained press response. */
+/** Same layout and touch behavior as TouchableOpacity, with bulletproof touch handling. */
 export function MotionTouchable({
-  style, onPressIn, onPressOut, disabled, activeOpacity = 0.8, gradient = false, children, ...props
+  style, disabled, activeOpacity = 0.7, gradient = false, children, ...props
 }: TouchableOpacityProps & { gradient?: boolean }) {
-  const reducedMotion = useReducedMotion();
-  const [scale] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    if (reducedMotion || disabled) {
-      scale.stopAnimation();
-      scale.setValue(1);
-    }
-    return () => scale.stopAnimation();
-  }, [reducedMotion, disabled, scale]);
-
-  const respond = (pressed: boolean) => {
-    scale.stopAnimation();
-    if (reducedMotion || disabled) {
-      scale.setValue(1);
-      return;
-    }
-    Animated.timing(scale, {
-      toValue: pressed ? 0.975 : 1,
-      duration: pressed ? 90 : 160,
-      easing: easeOut,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start();
-  };
-
   return (
-    <AnimatedTouchable
+    <TouchableOpacity
       accessibilityRole="button"
-      {...props}
       disabled={disabled}
-      activeOpacity={reducedMotion ? 1 : activeOpacity}
-      style={[style, { transform: [{ scale }] }]}
-      onPressIn={(event) => { respond(true); onPressIn?.(event); }}
-      onPressOut={(event) => { respond(false); onPressOut?.(event); }}
+      activeOpacity={activeOpacity}
+      style={style}
+      {...props}
     >
-      {gradient && <LinearGradient pointerEvents="none" colors={['#9470EC', '#7547D7', '#5F39B1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[StyleSheet.absoluteFill, { borderRadius: StyleSheet.flatten(style)?.borderRadius || 16 }]} />}
+      {gradient && (
+        <LinearGradient
+          pointerEvents="none"
+          colors={['#9470EC', '#7547D7', '#5F39B1']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            StyleSheet.absoluteFill,
+            { borderRadius: StyleSheet.flatten(style)?.borderRadius || 16 },
+          ]}
+        />
+      )}
       {children}
-    </AnimatedTouchable>
+    </TouchableOpacity>
   );
 }
 
@@ -117,10 +99,9 @@ export function MotionView({
   );
 }
 
-/** Retain native sheet presentation and back-button behavior, respecting reduced motion. */
+/** Retain native sheet presentation and back-button behavior. */
 export function MotionModal({ animationType = 'slide', ...props }: ModalProps) {
-  const reducedMotion = useReducedMotion();
-  return <Modal {...props} animationType={reducedMotion ? 'none' : animationType} />;
+  return <Modal animationType={animationType} {...props} />;
 }
 
 /** A left-anchored, native-driven fill that animates when the underlying value changes. */
