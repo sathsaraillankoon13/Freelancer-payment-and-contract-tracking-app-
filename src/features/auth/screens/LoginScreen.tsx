@@ -19,11 +19,13 @@ import { LoginFolderBadge } from '@/components/illustrations/LoginFolderBadge';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
+import { useAppContext } from '@/context/AppContext';
 
 export const LoginScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { switchRole } = useAppContext();
+  const [email, setEmail] = useState('kasun@creativepulse.lk');
+  const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -48,11 +50,24 @@ export const LoginScreen: React.FC = () => {
     setErrors({});
     setLoading(true);
 
+    const lowerEmail = email.toLowerCase();
+    if (lowerEmail.includes('senuri') || lowerEmail.includes('client')) {
+      switchRole('client');
+    } else if (
+      lowerEmail.includes('company') ||
+      lowerEmail.includes('agency') ||
+      lowerEmail.includes('isaacify')
+    ) {
+      switchRole('team');
+    } else {
+      switchRole('freelancer');
+    }
+
     // Transition to Home Dashboard
     setTimeout(() => {
       setLoading(false);
       router.replace('/home');
-    }, 600);
+    }, 400);
   };
 
   const handleForgotPassword = () => {
@@ -99,6 +114,72 @@ export const LoginScreen: React.FC = () => {
               <Text style={styles.subtitle}>
                 Log in to manage your client work.
               </Text>
+
+              {/* Demo Login Presets */}
+              <View style={styles.demoPillsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.demoPill,
+                    email === 'kasun@creativepulse.lk' && styles.demoPillActive,
+                  ]}
+                  onPress={() => {
+                    setEmail('kasun@creativepulse.lk');
+                    setPassword('password123');
+                    setErrors({});
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.demoPillText,
+                      email === 'kasun@creativepulse.lk' && styles.demoPillTextActive,
+                    ]}
+                  >
+                    ⚡ Freelancer
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.demoPill,
+                    email === 'company@isaacify.io' && styles.demoPillActive,
+                  ]}
+                  onPress={() => {
+                    setEmail('company@isaacify.io');
+                    setPassword('password123');
+                    setErrors({});
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.demoPillText,
+                      email === 'company@isaacify.io' && styles.demoPillTextActive,
+                    ]}
+                  >
+                    ⚡ Company
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.demoPill,
+                    email === 'senuri@ceylonbites.lk' && styles.demoPillActive,
+                  ]}
+                  onPress={() => {
+                    setEmail('senuri@ceylonbites.lk');
+                    setPassword('password123');
+                    setErrors({});
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.demoPillText,
+                      email === 'senuri@ceylonbites.lk' && styles.demoPillTextActive,
+                    ]}
+                  >
+                    ⚡ Client
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Inputs */}
@@ -193,6 +274,34 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  demoPillsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 14,
+    marginBottom: 4,
+  },
+  demoPill: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  demoPillActive: {
+    backgroundColor: '#F3E8FF',
+    borderColor: colors.buttonPrimary,
+  },
+  demoPillText: {
+    fontSize: 12,
+    fontFamily: typography.fonts.medium,
+    color: colors.textSecondary,
+  },
+  demoPillTextActive: {
+    fontFamily: typography.fonts.bold,
+    color: colors.buttonPrimary,
   },
   formSection: {
     width: '100%',

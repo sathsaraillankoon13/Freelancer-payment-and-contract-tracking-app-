@@ -80,16 +80,20 @@ export const RegisterScreen: React.FC = () => {
     setTimeout(() => {
       setLoading(false);
       Alert.alert(
-        'Account Registered!',
-        `Welcome to ISAACIFY CRM, ${fullName}! Your ${accountTypeName} account is ready.`,
+        'Verify Email Address',
+        `A 6-digit confirmation code has been sent to ${email}.`,
         [
           {
-            text: 'Go to Login',
-            onPress: () => router.push('/auth/login'),
+            text: 'Enter Code',
+            onPress: () =>
+              router.push({
+                pathname: '/auth/email-verification',
+                params: { email },
+              }),
           },
         ]
       );
-    }, 900);
+    }, 700);
   };
 
   const handleLogin = () => {
