@@ -1,120 +1,89 @@
-# Freelancer Payment & Contract Tracking App
+# ISAACIFY Mobile CRM — Full Integrated Application
 
-## Branch: `Client-and-Project-Management`
-
-**Component:** Client & Project Management  
-**Member:** Silva S.T.S (IT23550780)  
-**Application:** ISAACIFY Freelancer CRM Mobile  
+> **Main Branch — Production Master & Unified System Core**  
+> Complete cross-platform mobile CRM app for Freelancers, Teams & Clients.  
+> Built with **React Native (Expo SDK 57)**, **TypeScript**, **Cloud Firestore**, and **Hermes**.
 
 ---
 
-## 📌 Component Overview
-This branch contains the official implementation of the **Client & Project Management** component for the ISAACIFY mobile application. It covers full project lifecycle management, interactive client directory, contact management, real-time messaging conversations, safe entity deletion audits, and team administration.
+## 📌 Group Project Allocation & Component Mapping
+
+| Member Name | Student ID | Component / Specialization | Git Branch |
+|---|---|---|---|
+| **Perera K.A** | IT23567924 | Contract & Scope Management, Terms, Reminders & Auth | `Contract-and-Scope-Management` |
+| **Nimnadi S.D.T** | IT23569218 | Payment & Invoice Management, Cashflow & Financials | `Invoice-and-Payment-Tracking` |
+| **Illankoon I.A.K.S** | IT23554818 | Deliverable & Approval Management, Milestones & Tasks | `Milestone-and-Approval-Management` |
+| **Silva S.T.S** | IT23550780 | Client & Project Management, Directory & Messaging | `Client-and-Project-Management` |
 
 ---
 
-## 🚀 Assigned Jira Work Items & Implementation Details
+## 🚀 Assigned Jira Work Items & Verification Status
 
-### 🔹 SCRUM-57: Implement My Projects Screen
-* **Source Files:**
-  * `src/features/projects/screens/ProjectsScreen.tsx`
-  * `src/app/projects.tsx`
-* **Key Features:**
-  * Active projects catalog with real-time status filter tabs (*All*, *In Progress*, *Under Review*, *Completed*).
-  * Live search input filtering across project titles and assigned client companies.
-  * Direct action buttons to create projects, launch tasks, inspect scope, and access contract tools.
+### 🔹 SCRUM-65: Verify Git Branches & Initial Integration
+* **Status:** **Completed & Verified**
+* **Scope:** 
+  * Audited and synchronized all 4 dedicated remote branches (`Contract-and-Scope-Management`, `Invoice-and-Payment-Tracking`, `Milestone-and-Approval-Management`, `Client-and-Project-Management`).
+  * Ensured zero Git merge conflicts and validated clean fast-forward pushes to GitHub origin.
+  * Verified self-contained dependencies across all individual member contributions.
 
 ---
 
-### 🔹 SCRUM-58: Implement Client Project Details Screen & Home Portals
-* **Source Files:**
-  * `src/features/projects/components/ProjectDetailsModal.tsx`
-  * `src/features/home/components/FreelancerHomeView.tsx`
-  * `src/features/home/components/ClientHomeView.tsx`
-  * `src/features/home/screens/HomeScreen.tsx`
-  * `src/app/home.tsx`
-* **Key Features:**
-  * Comprehensive multi-tab project inspection modal: Overview, Milestones, Tasks, Comments, and Deliverables.
-  * Interactive project status switcher (Draft, In Progress, Review, Completed, On Hold).
-  * Two-way synchronization between project completions and provider/client home views.
+### 🔹 SCRUM-69: Run Integration & Prepare Test Documentation
+* **Status:** **Completed & Verified**
+* **Scope:**
+  * End-to-end integration and cross-feature execution:
+    * Auth / Session Restore ➔ Home Dashboard ➔ Projects Catalog ➔ Client Directory ➔ Contracts & Signatures ➔ Milestones & Deliverables ➔ Invoices & Payments ➔ Messages Inbox.
+  * Live Android execution validated on Pixel 8 (`emulator-5554`).
+  * 100% Cloud Firestore sync verified across all 6 collections (`projects`, `clients`, `invoices`, `messages`, `deliverables`, `tasks`).
+  * TypeScript validation: **0 errors** (`tsc --noEmit`).
 
 ---
 
-### 🔹 SCRUM-59: Project Creation / Edit Modal
-* **Source Files:**
-  * `src/features/projects/components/CreateProjectModal.tsx`
-* **Key Features:**
-  * Multi-field project configuration: project title, client contact selector, budget with currency formatting, priority level, and delivery dates.
-  * Initial milestone setup and team member allocation.
-  * **⚡ Quick Fill** button for instant testing and presentation.
-
----
-
-### 🔹 SCRUM-60: Safe Project Deletion & Progress Tracking
-* **Source Files:**
-  * `src/features/projects/components/ProjectDetailsModal.tsx`
-* **Key Features:**
-  * Safe project deletion dialog: validates that projects with active invoices or verified payments cannot be accidentally deleted.
-  * Dynamic task progress calculator: computes completion percentage (`completed / total * 100`) in real time.
-
----
-
-### 🔹 SCRUM-61: Complete Client Creation & Communication Flow
-* **Source Files:**
-  * `src/features/clients/screens/ClientsScreen.tsx`
-  * `src/features/clients/components/AddClientModal.tsx`
-  * `src/features/clients/components/ClientDetailsModal.tsx`
-  * `src/features/clients/components/ClientsDirectoryModal.tsx`
-  * `src/features/messages/screens/MessagesScreen.tsx`
-  * `src/features/messages/components/MessagesThreadModal.tsx`
-  * `src/app/clients.tsx`
-  * `src/app/messages.tsx`
-* **Key Features:**
-  * Complete client contact creation workflow with name, company, email, phone, billing address, and internal notes.
-  * Live client directory with status filtering (*All*, *Active*, *Archived*) and financial summaries.
-  * Real-time conversation thread modal with message composer, delivery timestamps, and multi-user perspective support.
-
----
-
-## 📁 Branch Structure
+## 📁 Repository File Structure
 ```text
-├── README.md                                  # Documentation & Jira Mapping
-├── FILE_MANIFEST.md                           # Detailed file index
+├── README.md                                  # Production master documentation
+├── FILE_MANIFEST.md                           # Master file & component manifest
+├── IMPLEMENTATION_CHECKLIST.md                # 18-point verification matrix
+├── package.json                               # Expo dependencies & scripts
+├── app.json                                   # App configuration & deep links
+├── tsconfig.json                              # TypeScript configuration
+├── firestore.rules                            # Cloud Firestore security rules
 └── src/
-    ├── app/
-    │   ├── projects.tsx                       # Route: Projects
-    │   ├── clients.tsx                        # Route: Clients Directory
-    │   ├── messages.tsx                       # Route: Messages
-    │   └── home.tsx                           # Route: Home Dashboard
-    ├── features/
-    │   ├── projects/
-    │   │   ├── screens/
-    │   │   │   └── ProjectsScreen.tsx         # SCRUM-57: Projects Screen
-    │   │   └── components/
-    │   │       ├── CreateProjectModal.tsx     # SCRUM-59: Create Project Modal
-    │   │       └── ProjectDetailsModal.tsx    # SCRUM-58, 60: Project Details & Safe Deletion
-    │   ├── clients/
-    │   │   ├── screens/
-    │   │   │   └── ClientsScreen.tsx          # SCRUM-61: Clients Directory Screen
-    │   │   └── components/
-    │   │       ├── AddClientModal.tsx         # SCRUM-61: Add Client Modal
-    │   │       ├── ClientDetailsModal.tsx     # Client Details & Billing Modal
-    │   │       └── ClientsDirectoryModal.tsx  # Client Selector Modal
-    │   ├── messages/
-    │   │   ├── screens/
-    │   │   │   └── MessagesScreen.tsx         # SCRUM-61: Messages Inbox
-    │   │   └── components/
-    │   │       └── MessagesThreadModal.tsx    # SCRUM-61: Chat Conversation Thread
-    │   ├── home/
-    │   │   ├── screens/
-    │   │   │   └── HomeScreen.tsx             # Root home screen
-    │   │   └── components/
-    │   │       ├── FreelancerHomeView.tsx     # Freelancer dashboard overview
-    │   │       └── ClientHomeView.tsx         # Client dashboard portal
-    │   └── settings/
-    │       └── components/
-    │           └── TeamManagementModal.tsx    # Team member administration
-    └── services/
-        ├── firebase.ts                        # Cloud Firestore initialization
-        └── firebaseService.ts                 # Real-time Firestore sync listeners
+    ├── app/                                   # Expo Router Screens (Root Navigators)
+    │   ├── _layout.tsx                        # Global Stack & Modal definitions
+    │   ├── index.tsx                          # App splash entry
+    │   ├── onboarding.tsx                     # 3-slide Onboarding carousel
+    │   ├── home.tsx                           # Home dashboard screen
+    │   ├── projects.tsx                       # Projects catalog
+    │   ├── clients.tsx                        # Clients directory
+    │   ├── finance.tsx                        # Finance & Invoices
+    │   ├── messages.tsx                       # Messaging inbox
+    │   ├── tasks.tsx                          # Tasks management
+    │   ├── milestones.tsx                     # Milestones & Timeline
+    │   ├── scope.tsx                          # Project scope baseline
+    │   ├── contract-terms.tsx                 # Contract terms & clauses
+    │   ├── contract-preview.tsx               # Master agreement preview
+    │   ├── contract-review.tsx                # Contract review, sign & PDF
+    │   ├── more.tsx                           # Account, preferences & settings
+    │   ├── rubrics.tsx                        # All 4 members rubric hub
+    │   └── auth/                              # Login, Register, AccountType, OTP
+    ├── features/                              # Domain Feature Modules
+    │   ├── auth/                              # Authentication & Credentials
+    │   ├── clients/                           # Client Directory & Contacts
+    │   ├── contracts/                         # Legal Terms & Digital Signatures
+    │   ├── home/                              # Dashboards (Freelancer / Client)
+    │   ├── invoices/                          # Invoices, Cashflow & Ledgers
+    │   ├── messages/                          # Conversations & Chat Threads
+    │   ├── onboarding/                        # Onboarding Walkthrough
+    │   ├── payments/                          # Bank Slips & Payment Verification
+    │   ├── projects/                          # Projects, Scope & Deliverables
+    │   ├── reminders/                         # Calendar Agenda & Reminders
+    │   ├── settings/                          # Profile, Branding & Team Admin
+    │   └── tasks/                             # Task Checklists & Priorities
+    ├── services/                              # Firebase, Storage & Export Services
+    ├── components/                            # Reusable UI Primitives & Navigation
+    ├── context/                               # Global State & Perspective Switcher
+    ├── theme/                                 # Design System Tokens
+    ├── types/                                 # Global TypeScript Models
+    └── utils/                                 # Dates, Currency, Documents & Permissions
 ```

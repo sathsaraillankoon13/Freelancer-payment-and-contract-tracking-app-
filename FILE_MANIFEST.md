@@ -1,17 +1,13 @@
-# File Manifest — Client & Project Management
+# Master File Manifest — Full Application Integration
 
-**Component:** Client & Project Management  
-**Branch:** `Client-and-Project-Management`  
-**Member:** Silva S.T.S (IT23550780)  
-**Assigned Jira Work Items:** SCRUM-57, SCRUM-58, SCRUM-59, SCRUM-60, SCRUM-61  
+**Application:** ISAACIFY Freelancer CRM Mobile  
+**Branch:** `main`  
+**Assigned Jira Work Items:** SCRUM-65, SCRUM-69 (Integration & Verification)  
 
-| Jira Key | Work Item | File Path | Functional Area |
+| Component | Member Responsible | Key Entry Points | Primary Git Branch |
 |---|---|---|---|
-| **SCRUM-57** | Implement My Projects Screen | `src/features/projects/screens/ProjectsScreen.tsx` | Projects Catalog & Status Filtering |
-| **SCRUM-58** | Implement Client Project Details Screen | `src/features/projects/components/ProjectDetailsModal.tsx` | Project Overview & Multi-tab Details |
-| **SCRUM-59** | Project Creation / Edit Modal | `src/features/projects/components/CreateProjectModal.tsx` | Dynamic Project Creation |
-| **SCRUM-60** | Safe Project Deletion & Progress Tracking | `src/features/projects/components/ProjectDetailsModal.tsx` | Deletion Dependency Checks & Progress |
-| **SCRUM-61** | Complete Client Creation & Communication Flow | `src/features/clients/screens/ClientsScreen.tsx`, `AddClientModal.tsx`, `MessagesScreen.tsx`, `MessagesThreadModal.tsx` | Client Contact CRUD & Real-Time Messaging |
-| Support | Client Directory Picker | `src/features/clients/components/ClientsDirectoryModal.tsx` | Client Selection & Links |
-| Support | Team Administration | `src/features/settings/components/TeamManagementModal.tsx` | Team Members & Permissions |
-| Support | Real-time Cloud Sync | `src/services/firebase.ts`, `src/services/firebaseService.ts` | Two-way Firestore Synchronization |
+| **Contract & Scope Management** | Perera K.A (IT23567924) | `contract-terms.tsx`, `contract-preview.tsx`, `contract-review.tsx`, `scope.tsx`, `ForgotPasswordScreen.tsx` | `Contract-and-Scope-Management` |
+| **Payment & Invoice Management** | Nimnadi S.D.T (IT23569218) | `finance.tsx`, `FinanceScreen.tsx`, `CreateInvoiceModal.tsx`, `SubmitPaymentModal.tsx` | `Invoice-and-Payment-Tracking` |
+| **Deliverable & Approval Management** | Illankoon I.A.K.S (IT23554818) | `milestones.tsx`, `tasks.tsx`, `SubmitDeliverableModal.tsx`, `ReviewDeliverableModal.tsx` | `Milestone-and-Approval-Management` |
+| **Client & Project Management** | Silva S.T.S (IT23550780) | `projects.tsx`, `clients.tsx`, `messages.tsx`, `CreateProjectModal.tsx`, `AddClientModal.tsx` | `Client-and-Project-Management` |
+| **Common Application Core** | All Members | `_layout.tsx`, `home.tsx`, `AppContext.tsx`, `firebase.ts`, `rubrics.tsx` | `main` |
