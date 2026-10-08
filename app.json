@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "ISAACIFY CRM Manager",
+    "slug": "isaacify-crm-manager",
+    "scheme": "isaacify",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FAF9FD",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAF9FD"
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/DMSans_400Regular.ttf",
+            "./assets/fonts/DMSans_500Medium.ttf",
+            "./assets/fonts/DMSans_700Bold.ttf"
+          ]
+        }
+      ]
+    ]
+  }
+}
