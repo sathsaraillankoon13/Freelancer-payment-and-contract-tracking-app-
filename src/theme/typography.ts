@@ -2,8 +2,13 @@ export const typography = {
   fonts: {
     regular: 'DMSans_400Regular',
     medium: 'DMSans_500Medium',
+    semiBold: 'DMSans_500Medium',
     bold: 'DMSans_700Bold',
   },
+  regular: 'DMSans_400Regular',
+  medium: 'DMSans_500Medium',
+  semiBold: 'DMSans_500Medium',
+  bold: 'DMSans_700Bold',
   sizes: {
     title: 29,
     subtitle: 16,
@@ -14,6 +19,7 @@ export const typography = {
   weights: {
     regular: '400' as const,
     medium: '500' as const,
+    semiBold: '600' as const,
     bold: '700' as const,
   },
   letterSpacing: {

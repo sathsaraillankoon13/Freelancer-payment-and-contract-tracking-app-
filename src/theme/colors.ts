@@ -12,6 +12,7 @@ export const colors = {
   primaryLeftFacet: '#6546B6',
   buttonPrimary: '#6D4BCB',
   buttonPrimaryPressed: '#5C3CB3',
+  primarySoft: '#F1EAFD',
   loadingDots: '#9B82D7',
   glowCenter: '#EDE5F8',
   cardBorder: '#E5E7EB',

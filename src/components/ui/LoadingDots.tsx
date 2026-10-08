@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
 import { colors } from '@/theme/colors';
 
@@ -15,9 +15,9 @@ export const LoadingDots: React.FC<LoadingDotsProps> = ({
   gap = 7,
   style,
 }) => {
-  const opacity1 = useRef(new Animated.Value(0.35)).current;
-  const opacity2 = useRef(new Animated.Value(0.35)).current;
-  const opacity3 = useRef(new Animated.Value(0.35)).current;
+  const [opacity1] = useState(() => new Animated.Value(0.35));
+  const [opacity2] = useState(() => new Animated.Value(0.35));
+  const [opacity3] = useState(() => new Animated.Value(0.35));
 
   useEffect(() => {
     const createPulse = (animatedValue: Animated.Value) => {

@@ -17,7 +17,6 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
 import { TeamMemberRole } from '@/types';
-import { BottomTabBar, TabName } from '@/components/navigation/BottomTabBar';
 
 export const TeamManagementModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -29,13 +28,7 @@ export const TeamManagementModal: React.FC = () => {
     removeTeamMember,
     currentUser,
     canManageTeam,
-    setActiveTab,
   } = useAppContext();
-
-  const handleTabPress = (tab: TabName) => {
-    closeModal();
-    setActiveTab(tab);
-  };
 
   const isVisible = activeModal === 'team_management';
 
@@ -247,14 +240,12 @@ export const TeamManagementModal: React.FC = () => {
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <TouchableOpacity gradient style={styles.inviteBtn} onPress={handleInvite} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.inviteBtn} onPress={handleInvite} activeOpacity={0.8}>
               <Feather name="user-plus" size={18} color={colors.white} />
               <Text style={styles.inviteBtnText}>Save pending invitation</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
-
-        <BottomTabBar activeTab="more" onTabPress={handleTabPress} />
       </View>
     </Modal>
   );
