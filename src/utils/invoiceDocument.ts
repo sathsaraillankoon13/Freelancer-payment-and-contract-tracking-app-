@@ -1,8 +1,0 @@
-import type { Invoice } from '@/types';
-export function invoiceHtml(invoice: Invoice, sender: string): string {
-  const escape = (value = '') => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
-  const amount = (n: number) => `${escape(invoice.currency)} ${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
-  const rows = invoice.items.map(item => `<tr><td>${escape(item.description)}</td><td>${item.quantity}</td><td>${amount(item.rate)}</td><td>${amount(item.amount)}</td></tr>`).join('');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font:14px Arial;color:#292035;padding:32px}h1{color:#7852cc}table{width:100%;border-collapse:collapse;margin-top:28px}td,th{padding:12px;text-align:left;border-bottom:1px solid #eee}th{background:#f5f1fb}p{line-height:1.8}.total{text-align:right;margin-top:24px}</style></head><body><h1>INVOICE</h1><h2>${escape(invoice.invoiceNumber)} ${invoice.status === 'Draft' ? '· DRAFT' : ''}</h2><p>${escape(sender)}<br>Bill to: ${escape(invoice.clientName)}<br>Project: ${escape(invoice.projectTitle)}<br>Issued: ${escape(invoice.issueDate)}<br>Due: ${escape(invoice.dueDate)}</p><table><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>${rows}</table><p class="total">Subtotal: ${amount(invoice.subtotal ?? invoice.items.reduce((s,i)=>s+i.amount,0))}<br>Discount: ${amount(invoice.discount || 0)}<br>Tax: ${amount(invoice.taxAmount || 0)}<br><b>Total: ${amount(invoice.totalAmount)}</b><br>Paid: ${amount(invoice.paidAmount)}<br>Balance: ${amount(invoice.outstandingAmount)}</p>${invoice.notes ? `<p>${escape(invoice.notes)}</p>` : ''}</body></html>`;
-}
-

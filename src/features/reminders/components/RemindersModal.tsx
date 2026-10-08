@@ -43,9 +43,55 @@ export const RemindersModal: React.FC = () => {
   const [newType, setNewType] = useState<ReminderItem['type']>('personal');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
+  // Interactive Calendar State
+  const [currentYear, setCurrentYear] = useState(2026);
+  const [currentMonth, setCurrentMonth] = useState(9); // 0-indexed: 9 = October
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear((y) => y - 1);
+    } else {
+      setCurrentMonth((m) => m - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear((y) => y + 1);
+    } else {
+      setCurrentMonth((m) => m + 1);
+    }
+  };
+
+  const hasReminderOnDate = (dayNum: number) => {
+    const dStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+    return reminders.some((r) => r.dateTime?.startsWith(dStr));
+  };
+
+  const handleSelectDay = (dayNum: number) => {
+    const dStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+    if (selectedCalendarDate === dStr) {
+      setSelectedCalendarDate(null);
+    } else {
+      setSelectedCalendarDate(dStr);
+    }
+  };
+
   const filteredReminders = reminders.filter((r) => {
-    if (filterTab === 'pending') return r.status === 'pending' || r.status === 'snoozed';
-    if (filterTab === 'completed') return r.status === 'completed';
+    if (filterTab === 'pending' && !(r.status === 'pending' || r.status === 'snoozed')) return false;
+    if (filterTab === 'completed' && r.status !== 'completed') return false;
+    if (selectedCalendarDate && !r.dateTime?.startsWith(selectedCalendarDate)) return false;
     return true;
   });
 
@@ -222,6 +268,85 @@ export const RemindersModal: React.FC = () => {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Interactive Monthly Calendar Card (HCI Calendar Requirement) */}
+          <View style={styles.calendarCard}>
+            <View style={styles.calendarHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Feather name="calendar" size={16} color={colors.buttonPrimary} />
+                <Text style={styles.calendarMonthTitle}>
+                  {monthNames[currentMonth]} {currentYear}
+                </Text>
+              </View>
+              <View style={styles.calendarNavRow}>
+                <TouchableOpacity style={styles.calNavBtn} onPress={handlePrevMonth}>
+                  <Feather name="chevron-left" size={16} color={colors.textPrimary} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.calNavBtn} onPress={handleNextMonth}>
+                  <Feather name="chevron-right" size={16} color={colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Weekday labels */}
+            <View style={styles.weekDaysRow}>
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d, idx) => (
+                <Text key={idx} style={styles.weekDayText}>{d}</Text>
+              ))}
+            </View>
+
+            {/* Days Grid */}
+            <View style={styles.daysGrid}>
+              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                <View key={`empty-${i}`} style={styles.dayCellEmpty} />
+              ))}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const dayNum = i + 1;
+                const dateKeyStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                const isSelected = selectedCalendarDate === dateKeyStr;
+                const hasReminder = hasReminderOnDate(dayNum);
+
+                return (
+                  <TouchableOpacity
+                    key={`day-${dayNum}`}
+                    style={[
+                      styles.dayCell,
+                      isSelected && styles.dayCellSelected,
+                    ]}
+                    onPress={() => handleSelectDay(dayNum)}
+                  >
+                    <Text
+                      style={[
+                        styles.dayNumberText,
+                        isSelected && styles.dayNumberTextSelected,
+                      ]}
+                    >
+                      {dayNum}
+                    </Text>
+                    {hasReminder && (
+                      <View
+                        style={[
+                          styles.dayReminderDot,
+                          isSelected && styles.dayReminderDotSelected,
+                        ]}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {selectedCalendarDate && (
+              <View style={styles.calendarFilterInfo}>
+                <Text style={styles.calendarFilterText}>
+                  Showing date: <Text style={{ fontWeight: '700' }}>{selectedCalendarDate}</Text>
+                </Text>
+                <TouchableOpacity onPress={() => setSelectedCalendarDate(null)}>
+                  <Text style={styles.calendarClearFilterText}>Show All</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
 
           {/* Filter Tabs */}
           <View style={styles.filterRow}>
@@ -465,6 +590,114 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: typography.fonts.bold,
     color: colors.white,
+  },
+  calendarCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#ECEAF5',
+    marginBottom: 14,
+  },
+  calendarHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  calendarMonthTitle: {
+    fontSize: 15,
+    fontFamily: typography.fonts.bold,
+    color: colors.textPrimary,
+  },
+  calendarNavRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  calNavBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#F5F3FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weekDaysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0EFF6',
+    paddingBottom: 6,
+  },
+  weekDayText: {
+    width: 32,
+    textAlign: 'center',
+    fontSize: 11,
+    fontFamily: typography.fonts.medium,
+    color: colors.textMuted,
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  dayCellEmpty: {
+    width: '14.28%',
+    height: 36,
+  },
+  dayCell: {
+    width: '14.28%',
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    position: 'relative',
+  },
+  dayCellSelected: {
+    backgroundColor: colors.buttonPrimary,
+  },
+  dayNumberText: {
+    fontSize: 12,
+    fontFamily: typography.fonts.medium,
+    color: colors.textPrimary,
+  },
+  dayNumberTextSelected: {
+    color: colors.white,
+    fontFamily: typography.fonts.bold,
+  },
+  dayReminderDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.buttonPrimary,
+    position: 'absolute',
+    bottom: 3,
+  },
+  dayReminderDotSelected: {
+    backgroundColor: colors.white,
+  },
+  calendarFilterInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F3EEFF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 10,
+  },
+  calendarFilterText: {
+    fontSize: 11,
+    fontFamily: typography.fonts.regular,
+    color: colors.buttonPrimary,
+  },
+  calendarClearFilterText: {
+    fontSize: 11,
+    fontFamily: typography.fonts.bold,
+    color: colors.buttonPrimary,
+    textDecorationLine: 'underline',
   },
   filterRow: {
     flexDirection: 'row',

@@ -14,6 +14,7 @@ import { typography } from '@/theme/typography';
 
 interface InputProps extends TextInputProps {
   label?: string;
+  icon?: any;
   isPassword?: boolean;
   error?: string;
   containerStyle?: ViewStyle;
@@ -21,6 +22,7 @@ interface InputProps extends TextInputProps {
 
 export const Input: React.FC<InputProps> = ({
   label,
+  icon,
   isPassword = false,
   error,
   containerStyle,
@@ -40,6 +42,14 @@ export const Input: React.FC<InputProps> = ({
           !!error && styles.inputError,
         ]}
       >
+        {icon && (
+          <Feather
+            name={icon}
+            size={18}
+            color={colors.textSecondary}
+            style={{ marginRight: 8 }}
+          />
+        )}
         <TextInput
           style={styles.input}
           placeholderTextColor={colors.textMuted}
