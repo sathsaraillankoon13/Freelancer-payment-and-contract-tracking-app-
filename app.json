@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ISAACIFY CRM Manager",
-    "slug": "isaacify-crm-manager",
+    "name": "ISAACIFY Freelancer App",
+    "slug": "isaacify-freelancer-app",
     "scheme": "isaacify",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,12 +11,18 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.isaacify.freelancerapp",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#FAF9FD",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -31,7 +37,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FAF9FD"
+          "backgroundColor": "#FAF9FD",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
         }
       ],
       [
@@ -45,7 +53,8 @@
         }
       ],
       "expo-secure-store",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-web-browser"
     ]
   }
 }

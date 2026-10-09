@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { LogBox } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -16,41 +16,19 @@ import { GlobalModals } from '@/components/navigation/GlobalModals';
 // Silence non-critical warning toasts in dev environment
 LogBox.ignoreAllLogs(true);
 
-// Prevent native splash screen from auto-hiding before asset readiness
-SplashScreen.preventAutoHideAsync().catch(() => {});
+// Hide native splash screen immediately so the app's designed branded loading screen displays without delay
+SplashScreen.hideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [fallbackReady, setFallbackReady] = useState(false);
-
-  const [fontsLoaded, fontError] = useFonts({
+  useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_700Bold,
   });
 
-  const isReady = Boolean(fontsLoaded || fontError || fallbackReady);
-
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (isReady) {
-      SplashScreen.hideAsync().catch(() => {});
-    }
-  }, [isReady]);
-
-  useEffect(() => {
-    // Safety fallback so splash never hangs indefinitely
-    const timer = setTimeout(() => {
-      setFallbackReady(true);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!isReady) {
-    return null;
-  }
 
   return (
     <SafeAreaProvider>
