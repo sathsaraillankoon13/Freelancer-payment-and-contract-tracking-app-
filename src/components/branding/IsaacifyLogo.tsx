@@ -1,84 +1,60 @@
 import React from 'react';
-import Svg, {
-  Path,
-  Circle,
-  Defs,
-  LinearGradient,
-  Stop,
-  SvgProps,
-} from 'react-native-svg';
-import { colors } from '@/theme/colors';
+import { Image, ImageProps, StyleProp, ImageStyle } from 'react-native';
 
-interface IsaacifyLogoProps extends SvgProps {
+const OFFICIAL_LOGO = require('../../logo.png');
+
+// Actual dimensions of src/logo.png: 175 x 154
+const LOGO_ASPECT_RATIO = 175 / 154; // ~1.13636
+
+export interface IsaacifyLogoProps extends Partial<ImageProps> {
   size?: number;
   width?: number;
   height?: number;
+  style?: StyleProp<ImageStyle>;
 }
 
+/**
+ * Official ISAACIFY Logo Component
+ * Renders the official asset from src/logo.png with correct aspect ratio and no distortion.
+ */
 export const IsaacifyLogo: React.FC<IsaacifyLogoProps> = ({
   size,
-  width = 60,
-  height = 70,
+  width,
+  height,
+  style,
   ...props
 }) => {
-  // If size is provided, scale proportionally based on 60:70 aspect ratio
-  const logoWidth = size ? size : width;
-  const logoHeight = size ? Math.round((size * 70) / 60) : height;
+  let finalWidth = 80;
+  let finalHeight = Math.round(80 / LOGO_ASPECT_RATIO); // ~70
+
+  if (size) {
+    finalWidth = size;
+    finalHeight = Math.round(size / LOGO_ASPECT_RATIO);
+  } else if (width && !height) {
+    finalWidth = width;
+    finalHeight = Math.round(width / LOGO_ASPECT_RATIO);
+  } else if (height && !width) {
+    finalHeight = height;
+    finalWidth = Math.round(height * LOGO_ASPECT_RATIO);
+  } else if (width && height) {
+    finalWidth = width;
+    finalHeight = height;
+  }
 
   return (
-    <Svg
-      width={logoWidth}
-      height={logoHeight}
-      viewBox="0 0 60 70"
-      fill="none"
+    <Image
+      source={OFFICIAL_LOGO}
+      style={[
+        {
+          width: finalWidth,
+          height: finalHeight,
+        },
+        style,
+      ]}
+      resizeMode="contain"
+      fadeDuration={0}
       {...props}
-    >
-      <Defs>
-        <LinearGradient
-          id="topFaceGrad"
-          x1="30"
-          y1="1"
-          x2="30"
-          y2="34"
-          gradientUnits="userSpaceOnUse"
-        >
-          <Stop offset="0" stopColor={colors.primaryTopTip} />
-          <Stop offset="1" stopColor={colors.primaryLight} />
-        </LinearGradient>
-      </Defs>
-
-      {/* Top Diamond Face */}
-      <Path
-        d="M 30 1 L 59 17 L 30 34 L 1 17 Z"
-        fill="url(#topFaceGrad)"
-      />
-
-      {/* Left Face Base */}
-      <Path
-        d="M 1 17 L 30 34 L 30 69 L 1 52 Z"
-        fill={colors.primaryMedium}
-      />
-
-      {/* Left Face Inner Geometric Facet / Shadow */}
-      <Path
-        d="M 17 26.5 L 30 34 L 30 52 L 17 44.5 Z"
-        fill={colors.primaryLeftFacet}
-      />
-
-      {/* Right Face */}
-      <Path
-        d="M 30 34 L 59 17 L 59 52 L 30 69 Z"
-        fill={colors.primaryDark}
-      />
-
-      {/* Center Vertex Dot */}
-      <Circle
-        cx="30"
-        cy="34"
-        r="1.8"
-        fill={colors.white}
-      />
-    </Svg>
+    />
   );
 };
 

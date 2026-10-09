@@ -63,13 +63,35 @@ export const ContractReviewScreen: React.FC = () => {
     setAmendmentNote('');
   };
 
-  const handleExportPdf = async () => {
-    try {
-      if (!project) return;
-      await exportContractPdf(project, signerName);
-    } catch (err: any) {
-      Alert.alert('Export Notice', err?.message || 'Could not export contract PDF.');
-    }
+  const handleExportPdf = () => {
+    if (!project) return;
+    Alert.alert(
+      'Export Contract PDF',
+      `Contract for ${project.title}`,
+      [
+        {
+          text: 'Save as PDF / Print 🖨️',
+          onPress: async () => {
+            try {
+              await exportContractPdf(project, signerName, undefined, 'print');
+            } catch (err: any) {
+              Alert.alert('Export Notice', err?.message || 'Could not export contract PDF.');
+            }
+          },
+        },
+        {
+          text: 'Share PDF File 📄',
+          onPress: async () => {
+            try {
+              await exportContractPdf(project, signerName, undefined, 'share');
+            } catch (err: any) {
+              Alert.alert('Export Notice', err?.message || 'Could not export contract PDF.');
+            }
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
 
   const handleSignContract = () => {

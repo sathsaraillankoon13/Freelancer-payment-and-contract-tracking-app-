@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { HeaderBack } from '@/components/ui/HeaderBack';
 import { Button } from '@/components/ui/Button';
+import { IsaacifyLogo } from '@/components/branding/IsaacifyLogo';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
@@ -87,10 +88,15 @@ export const AccountTypeScreen: React.FC = () => {
         <View>
           <HeaderBack />
 
+          {/* Official ISAACIFY Logo */}
+          <View style={{ alignItems: 'center', marginVertical: 8 }}>
+            <IsaacifyLogo size={56} />
+          </View>
+
           {/* Heading */}
           <View style={styles.headingSection}>
             <Text style={styles.title}>Welcome to ISAACIFY</Text>
-            <Text style={styles.subtitle}>Choose how you’ll use CRM Manager.</Text>
+            <Text style={styles.subtitle}>Choose how you’ll use ISAACIFY Freelancer App.</Text>
           </View>
 
           {/* Options Cards */}

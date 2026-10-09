@@ -75,11 +75,11 @@ export const SplashScreen: React.FC = () => {
 
         {/* Central Branding Group */}
         <View style={styles.brandingGroup}>
-          <IsaacifyLogo width={60} height={70} />
+          <IsaacifyLogo size={85} />
 
           <View style={styles.titleContainer}>
             <Text style={styles.title}>ISAACIFY</Text>
-            <Text style={styles.subtitle}>CRM Manager</Text>
+            <Text style={styles.subtitle}>Freelancer App</Text>
           </View>
 
           <Text style={styles.tagline}>

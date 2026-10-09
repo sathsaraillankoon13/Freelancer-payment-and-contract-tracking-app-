@@ -18,6 +18,7 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { ReminderItem } from '@/types';
+import { DatePickerModal } from '@/components/common/DatePickerModal';
 
 export const RemindersModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -42,6 +43,7 @@ export const RemindersModal: React.FC = () => {
   const [newNotify, setNewNotify] = useState(true);
   const [newType, setNewType] = useState<ReminderItem['type']>('personal');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Interactive Calendar State
   const [currentYear, setCurrentYear] = useState(2026);
@@ -178,12 +180,16 @@ export const RemindersModal: React.FC = () => {
               />
 
               <Text style={styles.fieldLabel}>Date (YYYY-MM-DD)</Text>
-              <TextInput
-                style={styles.input}
-                value={newDate}
-                onChangeText={setNewDate}
-                placeholder="YYYY-MM-DD"
-              />
+              <TouchableOpacity
+                style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                onPress={() => setShowDatePicker(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 13, color: newDate ? colors.textPrimary : colors.textMuted }}>
+                  {newDate || 'YYYY-MM-DD'}
+                </Text>
+                <Feather name="calendar" size={15} color={colors.buttonPrimary} />
+              </TouchableOpacity>
 
               <Text style={styles.fieldLabel}>Note (optional)</Text>
               <TextInput
@@ -451,6 +457,14 @@ export const RemindersModal: React.FC = () => {
             })
           )}
         </ScrollView>
+
+        <DatePickerModal
+          visible={showDatePicker}
+          onClose={() => setShowDatePicker(false)}
+          onSelectDate={(d) => setNewDate(d)}
+          initialDate={newDate}
+          title="Select Reminder Date"
+        />
       </View>
     </Modal>
   );
