@@ -36,6 +36,7 @@ export const colors = {
   pillPeachText: '#B45309',
   badgeRedBg: '#FEF2F2',
   badgeRedText: '#DC2626',
+  error: '#DC2626',
   greySurface: '#F9FAFB',
 } as const;
 

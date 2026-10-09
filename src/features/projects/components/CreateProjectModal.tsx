@@ -11,12 +11,15 @@ import {
   Switch,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import { pickImage } from '@/services/attachments';
+import { DatePickerModal } from '@/components/common/DatePickerModal';
 
 export const CreateProjectModal: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -41,6 +44,19 @@ export const CreateProjectModal: React.FC = () => {
   const [budget, setBudget] = useState('');
   const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('High');
   const [shareWithClient, setShareWithClient] = useState(true);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [datePickerTarget, setDatePickerTarget] = useState<'start' | 'deadline' | null>(null);
+
+  const handleChooseCover = async () => {
+    try {
+      const img = await pickImage();
+      if (img) {
+        setCoverImage(img.uri);
+      }
+    } catch (err) {
+      Alert.alert('Cover Image', err instanceof Error ? err.message : 'Unable to select image.');
+    }
+  };
 
   // Milestones list
   const [milestones, setMilestones] = useState<
@@ -89,6 +105,7 @@ export const CreateProjectModal: React.FC = () => {
         scopeNotes: scopeNotes.trim(),
         budget: numBudget,
         priority,
+        coverImage: coverImage || undefined,
         startDate: startDate || dateKey(),
         dueDate: deadline || dateKey(new Date(Date.now() + 30 * 86400000)),
         milestones: milestones.map((m, idx) => ({
@@ -105,6 +122,7 @@ export const CreateProjectModal: React.FC = () => {
       setProjectName('');
       setScopeNotes('');
       setBudget('');
+      setCoverImage(null);
       setMilestones([]);
       setErrors({});
       Alert.alert('Project Created', `Project "${created.title}" has been created successfully!`);
@@ -154,13 +172,43 @@ export const CreateProjectModal: React.FC = () => {
         >
           {/* Cover & Branding Card */}
           <Text style={styles.sectionLabel}>Cover & Branding (Optional)</Text>
-          <TouchableOpacity style={styles.uploadCard} activeOpacity={0.7}>
-            <View style={styles.uploadIconBox}>
-              <Feather name="image" size={24} color={colors.buttonPrimary} />
+          {coverImage ? (
+            <View style={[styles.uploadCard, { padding: 8, alignItems: 'stretch' }]}>
+              <Image
+                source={{ uri: coverImage }}
+                style={{ width: '100%', height: 140, borderRadius: 12, backgroundColor: '#F3F0FA' }}
+                resizeMode="cover"
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FAF8FD', borderWidth: 1, borderColor: '#ECEAF5' }}
+                  onPress={handleChooseCover}
+                >
+                  <Feather name="refresh-cw" size={13} color={colors.buttonPrimary} />
+                  <Text style={{ fontSize: 12, color: colors.buttonPrimary, fontFamily: typography.fonts.semiBold }}>Change</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FCA5A5' }}
+                  onPress={() => setCoverImage(null)}
+                >
+                  <Feather name="trash-2" size={13} color="#DC2626" />
+                  <Text style={{ fontSize: 12, color: '#DC2626', fontFamily: typography.fonts.semiBold }}>Remove</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <Text style={styles.uploadTitle}>Upload project cover or client logo</Text>
-            <Text style={styles.uploadSubtitle}>PNG, JPG, or SVG up to 5MB</Text>
-          </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.uploadCard}
+              activeOpacity={0.7}
+              onPress={handleChooseCover}
+            >
+              <View style={styles.uploadIconBox}>
+                <Feather name="image" size={24} color={colors.buttonPrimary} />
+              </View>
+              <Text style={styles.uploadTitle}>Upload project cover or client logo</Text>
+              <Text style={styles.uploadSubtitle}>PNG, JPG, or SVG up to 5MB</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Project Name */}
           <View style={styles.fieldRowHeader}>
@@ -282,31 +330,37 @@ export const CreateProjectModal: React.FC = () => {
           {/* Schedule */}
           <Text style={styles.fieldLabel}>Schedule</Text>
           <View style={styles.scheduleRow}>
-            <View style={styles.scheduleBox}>
+            <TouchableOpacity
+              style={styles.scheduleBox}
+              activeOpacity={0.7}
+              onPress={() => setDatePickerTarget('start')}
+            >
               <Text style={styles.scheduleBoxLabel}>Start Date</Text>
               <View style={styles.scheduleBoxInputRow}>
                 <Feather name="calendar" size={16} color={colors.buttonPrimary} />
-                <TextInput
-                  style={styles.scheduleInput}
-                  value={startDate}
-                  onChangeText={setStartDate}
-                />
+                <Text style={[styles.scheduleInput, { paddingTop: Platform.OS === 'ios' ? 0 : 2 }]}>
+                  {startDate || 'YYYY-MM-DD'}
+                </Text>
+                <Feather name="chevron-down" size={14} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
               </View>
-            </View>
+            </TouchableOpacity>
 
-            <View style={[styles.scheduleBox, styles.scheduleBoxDeadline]}>
+            <TouchableOpacity
+              style={[styles.scheduleBox, styles.scheduleBoxDeadline]}
+              activeOpacity={0.7}
+              onPress={() => setDatePickerTarget('deadline')}
+            >
               <Text style={styles.scheduleBoxLabel}>
                 Deadline <Text style={styles.requiredAsterisk}>*</Text>
               </Text>
               <View style={styles.scheduleBoxInputRow}>
                 <Feather name="flag" size={16} color={colors.buttonPrimary} />
-                <TextInput
-                  style={styles.scheduleInput}
-                  value={deadline}
-                  onChangeText={setDeadline}
-                />
+                <Text style={[styles.scheduleInput, { paddingTop: Platform.OS === 'ios' ? 0 : 2 }]}>
+                  {deadline || 'YYYY-MM-DD'}
+                </Text>
+                <Feather name="chevron-down" size={14} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Budget & Valuation */}
@@ -474,6 +528,17 @@ export const CreateProjectModal: React.FC = () => {
             <Text style={styles.createProjectBtnText}>Create project</Text>
           </TouchableOpacity>
         </View>
+
+        <DatePickerModal
+          visible={datePickerTarget !== null}
+          onClose={() => setDatePickerTarget(null)}
+          onSelectDate={(date) => {
+            if (datePickerTarget === 'start') setStartDate(date);
+            else if (datePickerTarget === 'deadline') setDeadline(date);
+          }}
+          initialDate={datePickerTarget === 'start' ? startDate : deadline}
+          title={datePickerTarget === 'start' ? 'Select Start Date' : 'Select Project Deadline'}
+        />
       </View>
     </Modal>
   );

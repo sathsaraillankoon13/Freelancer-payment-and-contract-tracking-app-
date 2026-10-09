@@ -7,19 +7,21 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { HeaderBack } from '@/components/ui/HeaderBack';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { LoginFolderBadge } from '@/components/illustrations/LoginFolderBadge';
+import { IsaacifyLogo } from '@/components/branding/IsaacifyLogo';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
 import { useAppContext } from '@/context/AppContext';
+import { AuthService } from '@/services/authService';
 
 export const LoginScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -27,14 +29,15 @@ export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('kasun@creativepulse.lk');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
-  const handleLogin = () => {
-    const newErrors: { email?: string; password?: string } = {};
+  const handleLogin = async () => {
+    const newErrors: { email?: string; password?: string; general?: string } = {};
 
     if (!email.trim()) {
       newErrors.email = 'Please enter your email address.';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
       newErrors.email = 'Please enter a valid email address.';
     }
 
@@ -50,24 +53,39 @@ export const LoginScreen: React.FC = () => {
     setErrors({});
     setLoading(true);
 
-    const lowerEmail = email.toLowerCase();
-    if (lowerEmail.includes('senuri') || lowerEmail.includes('client')) {
-      switchRole('client');
-    } else if (
-      lowerEmail.includes('company') ||
-      lowerEmail.includes('agency') ||
-      lowerEmail.includes('isaacify')
-    ) {
-      switchRole('team');
-    } else {
-      switchRole('freelancer');
-    }
-
-    // Transition to Home Dashboard
-    setTimeout(() => {
+    try {
+      const res = await AuthService.signInWithEmail(email, password);
+      if (res.success && res.user) {
+        switchRole(res.user.role);
+        router.replace('/home');
+      } else {
+        setErrors({ general: res.error || 'Failed to sign in. Please verify your credentials.' });
+      }
+    } catch {
+      setErrors({ general: 'An unexpected connection error occurred. Please try again.' });
+    } finally {
       setLoading(false);
-      router.replace('/home');
-    }, 400);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setErrors({});
+    try {
+      const res = await AuthService.signInWithGoogle('freelancer');
+      if (res.success && res.user) {
+        switchRole(res.user.role);
+        router.replace('/home');
+      } else if (res.cancelled) {
+        // User cancelled, clean exit without error alert
+      } else if (res.error) {
+        setErrors({ general: res.error });
+      }
+    } catch {
+      setErrors({ general: 'Google sign-in could not be completed.' });
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -101,8 +119,10 @@ export const LoginScreen: React.FC = () => {
           <View>
             <HeaderBack />
 
-            {/* Floating Top Badge Graphic */}
-            <LoginFolderBadge />
+            {/* Official ISAACIFY Logo */}
+            <View style={styles.logoContainer}>
+              <IsaacifyLogo size={68} />
+            </View>
 
             {/* Headings */}
             <View style={styles.headingSection}>
@@ -178,15 +198,25 @@ export const LoginScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* General Error Banner */}
+            {errors.general ? (
+              <View style={styles.errorBanner}>
+                <Ionicons name="alert-circle" size={18} color={colors.error} />
+                <Text style={styles.errorBannerText}>{errors.general}</Text>
+              </View>
+            ) : null}
+
             {/* Inputs */}
             <View style={styles.formSection}>
               <Input
                 label="Email address"
-                placeholder=""
+                placeholder="name@example.com"
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
-                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                  if (errors.email || errors.general) {
+                    setErrors((prev) => ({ ...prev, email: undefined, general: undefined }));
+                  }
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -196,11 +226,13 @@ export const LoginScreen: React.FC = () => {
 
               <Input
                 label="Password"
-                placeholder=""
+                placeholder="••••••••"
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
-                  if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                  if (errors.password || errors.general) {
+                    setErrors((prev) => ({ ...prev, password: undefined, general: undefined }));
+                  }
                 }}
                 isPassword
                 error={errors.password}
@@ -225,6 +257,30 @@ export const LoginScreen: React.FC = () => {
               onPress={handleLogin}
               style={styles.loginButton}
             />
+
+            {/* Divider */}
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Authentication Button */}
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading || loading}
+              activeOpacity={0.8}
+            >
+              {googleLoading ? (
+                <ActivityIndicator size="small" color={colors.textPrimary} />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={18} color="#EA4335" style={{ marginRight: 10 }} />
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
             <View style={styles.footerRow}>
               <Text style={styles.footerText}>New to ISAACIFY? </Text>
@@ -252,9 +308,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xxl,
   },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 12,
+  },
   headingSection: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   title: {
     fontFamily: typography.fonts.bold,
@@ -299,6 +360,25 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.bold,
     color: colors.buttonPrimary,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: typography.fonts.medium,
+    color: colors.error,
+    lineHeight: 18,
+  },
   formSection: {
     width: '100%',
   },
@@ -316,10 +396,50 @@ const styles = StyleSheet.create({
   bottomSection: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 20,
   },
   loginButton: {
+    width: '100%',
+    marginBottom: 14,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginVertical: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontFamily: typography.fonts.medium,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: colors.white,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  googleButtonText: {
+    fontFamily: typography.fonts.medium,
+    fontSize: 15,
+    color: colors.textPrimary,
   },
   footerRow: {
     flexDirection: 'row',

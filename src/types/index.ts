@@ -14,6 +14,7 @@ export interface User {
   agencyLead?: string;
   clientId?: string;
   phone?: string;
+  phoneVerified?: boolean;
   avatarUrl?: string;
   currency?: string;
   reducedMotion?: boolean;
@@ -29,6 +30,7 @@ export interface FileAttachment {
 
 export interface ClientContact {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   name: string;
   companyName: string;
@@ -37,13 +39,15 @@ export interface ClientContact {
   avatarUrl?: string;
   status: 'active' | 'lead' | 'archived';
   isArchived?: boolean;
-  linkedUserId?: string;
+  linkedUserId?: string | null;
   outstandingBalance?: number;
   internalNotes?: string;
   initials?: string;
   billingAddress?: string;
   inviteCode?: string;
   invitationStatus?: 'pending' | 'accepted' | 'invited' | 'none';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type ProjectStatus =
@@ -99,12 +103,15 @@ export interface ScopeChangeRequest {
 
 export interface Project {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   title: string;
   name?: string;
+  coverImage?: string;
   clientId: string;
   clientName: string;
   clientInitials: string;
+  clientUid?: string | null;
   status: ProjectStatus;
   progressPercentage: number;
   totalTasks: number;
@@ -127,12 +134,16 @@ export interface Project {
   milestones?: Milestone[];
   terms?: ProjectTerm[];
   scopeChanges?: ScopeChangeRequest[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TaskItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   projectId: string;
+  clientUid?: string | null;
   title: string;
   projectTitle: string;
   description?: string;
@@ -144,10 +155,13 @@ export interface TaskItem {
   completed: boolean;
   order: number;
   priority?: 'Low' | 'Medium' | 'High';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface MeetingItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   projectId?: string;
   clientId?: string;
@@ -170,8 +184,10 @@ export interface DeliverableHistoryItem {
 
 export interface DeliverableItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   projectId: string;
+  clientUid?: string | null;
   projectTitle: string;
   deliverableName: string;
   fileName: string;
@@ -189,6 +205,8 @@ export interface DeliverableItem {
   clientFeedback?: string;
   attachment?: FileAttachment;
   history?: DeliverableHistoryItem[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface InvoiceItem {
@@ -216,12 +234,14 @@ export interface PaymentSubmission {
 
 export interface Invoice {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   invoiceNumber: string;
   projectId: string;
   projectTitle: string;
   clientId: string;
   clientName: string;
+  clientUid?: string | null;
   totalAmount: number;
   paidAmount: number;
   outstandingAmount: number;
@@ -236,11 +256,15 @@ export interface Invoice {
   taxAmount?: number;
   taxRate?: number;
   notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TransactionItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
+  clientUid?: string | null;
   invoiceId?: string;
   paymentId?: string;
   source?: 'payment' | 'manual' | 'expense';
@@ -254,16 +278,21 @@ export interface TransactionItem {
   occurredAt?: string;
   receiptUrl?: string;
   attachment?: FileAttachment;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface MessageItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   clientId: string;
   projectId?: string;
   senderId: string;
   senderName: string;
   senderRole: UserRole;
+  recipientId?: string;
+  participantUids?: string[];
   text: string;
   timestamp: string;
   read: boolean;
@@ -286,6 +315,7 @@ export interface TeamMember {
 
 export interface CommentItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   targetType: 'project' | 'task' | 'deliverable';
   targetId: string;
@@ -299,6 +329,7 @@ export interface CommentItem {
 
 export interface ReminderItem {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   title: string;
   note?: string;
@@ -316,6 +347,7 @@ export interface ReminderItem {
 
 export interface AppNotification {
   id: string;
+  ownerUid?: string;
   workspaceId?: string;
   recipientId?: string;
   title: string;

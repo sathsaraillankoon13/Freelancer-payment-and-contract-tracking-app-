@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -256,6 +257,13 @@ export const ProjectsScreen: React.FC = () => {
               </View>
 
               {/* Title & Notes */}
+              {project.coverImage ? (
+                <Image
+                  source={{ uri: project.coverImage }}
+                  style={{ width: '100%', height: 110, borderRadius: 12, marginBottom: 10, backgroundColor: '#F3F0FA' }}
+                  resizeMode="cover"
+                />
+              ) : null}
               <Text style={styles.cardTitle}>{project.title}</Text>
               {project.scopeNotes ? (
                 <Text style={styles.cardScope} numberOfLines={2}>

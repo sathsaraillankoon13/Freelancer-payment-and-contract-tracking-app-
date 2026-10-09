@@ -222,7 +222,15 @@ export const ReviewDeliverableModal: React.FC = () => {
                 <TouchableOpacity
                   style={styles.fileQuickActionBtn}
                   onPress={() => {
-                    void openAttachment(deliverable.attachment).catch((error) =>
+                    const targetFile =
+                      deliverable.attachment ||
+                      (deliverable.shareUrl ? { uri: deliverable.shareUrl, name: deliverable.fileName } : null) ||
+                      (deliverable.thumbnailUrl ? { uri: deliverable.thumbnailUrl, name: deliverable.fileName } : null);
+                    if (!targetFile) {
+                      Alert.alert('File unavailable', 'No file attachment is linked to this deliverable yet.');
+                      return;
+                    }
+                    void openAttachment(targetFile).catch((error) =>
                       Alert.alert('File unavailable', error.message)
                     );
                   }}
