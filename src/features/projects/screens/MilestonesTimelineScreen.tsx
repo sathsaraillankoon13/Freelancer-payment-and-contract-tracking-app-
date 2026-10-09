@@ -14,6 +14,7 @@ import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import type { Milestone, Project } from '@/types';
+import { DatePickerModal } from '@/components/common/DatePickerModal';
 
 export const MilestonesTimelineScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -38,6 +39,7 @@ export const MilestonesTimelineScreen: React.FC = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const milestones: Milestone[] = activeProject?.milestones || [];
   const totalCount = milestones.length;
@@ -214,13 +216,16 @@ export const MilestonesTimelineScreen: React.FC = () => {
               multiline
             />
             <Text style={styles.inputLabel}>Due Date (YYYY-MM-DD)</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="2026-11-15"
-              placeholderTextColor="#94A3B8"
-              value={newDueDate}
-              onChangeText={setNewDueDate}
-            />
+            <TouchableOpacity
+              style={[styles.textInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontSize: 13, color: newDueDate ? '#0F172A' : '#94A3B8' }}>
+                {newDueDate || 'YYYY-MM-DD'}
+              </Text>
+              <Feather name="calendar" size={15} color={colors.buttonPrimary} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.saveMilestoneBtn}
               onPress={handleAddMilestone}
@@ -383,6 +388,14 @@ export const MilestonesTimelineScreen: React.FC = () => {
           })
         )}
       </ScrollView>
+
+      <DatePickerModal
+        visible={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        onSelectDate={(d) => setNewDueDate(d)}
+        initialDate={newDueDate}
+        title="Select Milestone Due Date"
+      />
     </View>
   );
 };

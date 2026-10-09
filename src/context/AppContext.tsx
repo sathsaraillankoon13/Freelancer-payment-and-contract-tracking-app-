@@ -41,13 +41,14 @@ import {
   INITIAL_DELIVERABLE,
   INITIAL_INVOICES,
   INITIAL_TRANSACTIONS,
-  INITIAL_NOTIFICATIONS,
-  INITIAL_RECENT_ACTIVITY,
   INITIAL_REMINDERS,
 } from '@/services/mockData';
 import { StorageService } from '@/services/storage';
 import { FirebaseService } from '@/services/firebaseService';
+import { AuthService } from '@/services/authService';
 import { TabName } from '@/components/navigation/BottomTabBar';
+import { normalizePhoneNumber } from '@/utils/phone';
+import { Alert } from 'react-native';
 
 export type ModalType =
   | 'project_details'
@@ -56,6 +57,7 @@ export type ModalType =
   | 'add_client'
   | 'clients_directory'
   | 'create_invoice'
+  | 'edit_invoice'
   | 'submit_payment'
   | 'submit_deliverable'
   | 'review_deliverable'
@@ -98,6 +100,7 @@ export interface AppContextValue {
   openClientDetailsModal: (clientId: string) => void;
   openClientsDirectoryModal: () => void;
   openCreateInvoiceModal: () => void;
+  openEditInvoiceModal: (invoiceId: string) => void;
   openSubmitPaymentModal: (invoiceId?: string) => void;
   openSubmitDeliverableModal: (projectId?: string) => void;
   openReviewDeliverableModal: (deliverableId?: string) => void;
@@ -209,6 +212,7 @@ export interface AppContextValue {
 
   // Invoices & Payments (Member 2)
   addInvoice: (invoiceData: Partial<Invoice>) => Invoice;
+  updateInvoice: (invoiceId: string, updates: Partial<Invoice>) => Invoice | null;
   deleteInvoice: (invoiceId: string) => { success: boolean; reason?: string };
   issueInvoice: (invoiceId: string) => void;
   voidInvoice: (invoiceId: string) => void;
@@ -328,88 +332,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     null
   );
 
-  // Core Data
-  const [clients, setClients] = useState<ClientContact[]>(INITIAL_CLIENTS);
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [tasks, setTasks] = useState<TaskItem[]>(INITIAL_TASKS);
-  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
-  const [transactions, setTransactions] =
-    useState<TransactionItem[]>(INITIAL_TRANSACTIONS);
-  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([
-    INITIAL_DELIVERABLE,
-  ]);
-  const [messages, setMessages] = useState<MessageItem[]>([
-    {
-      id: 'msg_1',
-      clientId: 'cl_senuri',
-      projectId: 'prj_ceylonbites',
-      senderId: 'usr_kasun',
-      senderName: 'Kasun Perera',
-      senderRole: 'freelancer',
-      text: 'Hi Senuri, I have uploaded Homepage Design v2 with the spice hero update. Please review when convenient!',
-      timestamp: 'Today at 10:18 AM',
-      read: true,
-    },
-    {
-      id: 'msg_2',
-      clientId: 'cl_senuri',
-      projectId: 'prj_ceylonbites',
-      senderId: 'usr_senuri_client',
-      senderName: 'Senuri Perera',
-      senderRole: 'client',
-      text: 'Thanks Kasun! The palette looks fantastic. Reviewing the mobile navigation flow now.',
-      timestamp: 'Today at 11:05 AM',
-      read: true,
-    },
-  ]);
-  const [meetings] = useState<MeetingItem[]>([INITIAL_MEETING]);
-  const [recentActivity] = useState<RecentActivityItem[]>(
-    INITIAL_RECENT_ACTIVITY
-  );
-  const [notifications, setNotifications] =
-    useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    {
-      id: 'tm_1',
-      workspaceId: 'ws_isaacify',
-      name: 'Kasun Perera',
-      email: 'kasun@design.io',
-      role: 'owner',
-      status: 'active',
-      assignedProjectIds: ['prj_ceylonbites', 'prj_harbor', 'prj_bloom'],
-    },
-    {
-      id: 'tm_2',
-      workspaceId: 'ws_isaacify',
-      name: 'Abhilash V',
-      email: 'isaacify.info@gmail.com',
-      role: 'admin',
-      status: 'active',
-      assignedProjectIds: ['prj_ceylonbites', 'prj_harbor'],
-    },
-  ]);
-  const [comments, setComments] = useState<CommentItem[]>([
-    {
-      id: 'cmt_1',
-      targetType: 'project',
-      targetId: 'prj_ceylonbites',
-      authorId: 'usr_kasun',
-      authorName: 'Kasun Perera',
-      authorRole: 'freelancer',
-      text: 'Initial typography tokens and mobile layouts shared with Senuri.',
-      createdAt: new Date().toISOString(),
-      visibility: 'shared',
-    },
-  ]);
-  const [reminders, setReminders] =
-    useState<ReminderItem[]>(INITIAL_REMINDERS);
+  // Core Data - Initialize cleanly to prevent cross-account data leakage
+  const [clients, setClients] = useState<ClientContact[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([]);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [reminders, setReminders] = useState<ReminderItem[]>([]);
 
   // Profile states
   const [userOverrides, setUserOverrides] = useState<Partial<User>>({});
 
-  // Compute Active User based on Role
+  // Compute Active User based on authenticated session or fallback
   const currentUser: User = useMemo(() => {
-    let base =
+    if (userOverrides && userOverrides.id) {
+      return {
+        ...userOverrides,
+        role: currentRole,
+      } as User;
+    }
+
+    const base =
       currentRole === 'client'
         ? INITIAL_CLIENT_USER
         : currentRole === 'team'
@@ -426,61 +376,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setCurrentRole(role);
   }, []);
 
-  // Cloud Firestore Real-time Two-Way Sync
+  // Restore authenticated session on mount
   useEffect(() => {
-    // 1. Seed initial demo data to Firestore if database is empty
-    FirebaseService.seedIfEmpty({
-      projects: INITIAL_PROJECTS,
-      clients: INITIAL_CLIENTS,
-      invoices: INITIAL_INVOICES,
-      messages: [
-        {
-          id: 'msg_1',
-          clientId: 'cl_senuri',
-          projectId: 'prj_ceylonbites',
-          senderId: 'usr_kasun',
-          senderName: 'Kasun Perera',
-          senderRole: 'freelancer',
-          text: 'Hi Senuri, I have uploaded Homepage Design v2 with the spice hero update. Please review when convenient!',
-          timestamp: 'Today at 10:18 AM',
-          read: true,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 'msg_2',
-          clientId: 'cl_senuri',
-          projectId: 'prj_ceylonbites',
-          senderId: 'usr_senuri_client',
-          senderName: 'Senuri Perera',
-          senderRole: 'client',
-          text: 'Thanks Kasun! The palette looks fantastic. Reviewing the mobile navigation flow now.',
-          timestamp: 'Today at 11:05 AM',
-          read: true,
-          createdAt: new Date().toISOString(),
-        },
-      ],
-      deliverables: [INITIAL_DELIVERABLE],
-      tasks: INITIAL_TASKS,
-    });
+    StorageService.loadSession().then((session) => {
+      if (session) {
+        setCurrentRole(session.role);
+        setUserOverrides(session);
 
-    // 2. Subscribe to real-time changes
-    const unsubProjects = FirebaseService.subscribeProjects((items) => {
-      if (items && items.length > 0) setProjects(items);
+        // If specifically running the Kasun demo persona, ensure demo workspace is seeded
+        if (session.id === 'usr_kasun_freelancer' && session.workspaceId) {
+          FirebaseService.seedWorkspaceIfEmpty(session.workspaceId, {
+            projects: INITIAL_PROJECTS,
+            clients: INITIAL_CLIENTS,
+            invoices: INITIAL_INVOICES,
+            messages: [
+              {
+                id: 'msg_1',
+                clientId: 'cl_senuri',
+                projectId: 'prj_ceylonbites',
+                senderId: 'usr_kasun',
+                senderName: 'Kasun Perera',
+                senderRole: 'freelancer',
+                text: 'Hi Senuri, I have uploaded Homepage Design v2 with the spice hero update. Please review when convenient!',
+                timestamp: 'Today at 10:18 AM',
+                read: true,
+                createdAt: new Date().toISOString(),
+              },
+              {
+                id: 'msg_2',
+                clientId: 'cl_senuri',
+                projectId: 'prj_ceylonbites',
+                senderId: 'usr_senuri_client',
+                senderName: 'Senuri Perera',
+                senderRole: 'client',
+                text: 'Thanks Kasun! The palette looks fantastic. Reviewing the mobile navigation flow now.',
+                timestamp: 'Today at 11:05 AM',
+                read: true,
+                createdAt: new Date().toISOString(),
+              },
+            ],
+            deliverables: [INITIAL_DELIVERABLE],
+            tasks: INITIAL_TASKS,
+            transactions: INITIAL_TRANSACTIONS,
+            reminders: INITIAL_REMINDERS,
+          });
+        }
+      }
     });
-    const unsubClients = FirebaseService.subscribeClients((items) => {
-      if (items && items.length > 0) setClients(items);
+  }, []);
+
+  // Scoped Cloud Firestore Real-time Two-Way Sync
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const scope = {
+      workspaceId: currentUser.workspaceId || (currentUser.role === 'client' ? undefined : `ws_${currentUser.id}`),
+      userRole: currentRole,
+      userId: currentUser.id,
+    };
+
+    const unsubProjects = FirebaseService.subscribeProjects(scope, (items) => {
+      setProjects(items);
     });
-    const unsubInvoices = FirebaseService.subscribeInvoices((items) => {
-      if (items && items.length > 0) setInvoices(items);
+    const unsubClients = FirebaseService.subscribeClients(scope, (items) => {
+      setClients(items);
     });
-    const unsubMessages = FirebaseService.subscribeMessages((items) => {
-      if (items && items.length > 0) setMessages(items);
+    const unsubInvoices = FirebaseService.subscribeInvoices(scope, (items) => {
+      setInvoices(items);
     });
-    const unsubDeliverables = FirebaseService.subscribeDeliverables((items) => {
-      if (items && items.length > 0) setDeliverables(items);
+    const unsubMessages = FirebaseService.subscribeMessages(scope, (items) => {
+      setMessages(items);
     });
-    const unsubTasks = FirebaseService.subscribeTasks((items) => {
-      if (items && items.length > 0) setTasks(items);
+    const unsubDeliverables = FirebaseService.subscribeDeliverables(scope, (items) => {
+      setDeliverables(items);
+    });
+    const unsubTasks = FirebaseService.subscribeTasks(scope, (items) => {
+      setTasks(items);
+    });
+    const unsubTransactions = FirebaseService.subscribeTransactions(scope, (items) => {
+      setTransactions(items);
+    });
+    const unsubReminders = FirebaseService.subscribeReminders(scope, (items) => {
+      setReminders(items);
+    });
+    const unsubComments = FirebaseService.subscribeComments(scope, (items) => {
+      setComments(items);
     });
 
     return () => {
@@ -490,8 +470,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       unsubMessages();
       unsubDeliverables();
       unsubTasks();
+      unsubTransactions();
+      unsubReminders();
+      unsubComments();
     };
-  }, []);
+  }, [currentUser?.id, currentUser?.workspaceId, currentRole]);
 
   // Modal Open / Close Handlers
   const openModal = useCallback(
@@ -541,8 +524,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const openCreateInvoiceModal = useCallback(() => {
+    if (currentRole === 'client') {
+      Alert.alert('Access Restricted', 'Creating invoices is only permitted for freelancers and workspace owners.');
+      return;
+    }
     setActiveModal('create_invoice');
-  }, []);
+  }, [currentRole]);
+
+  const openEditInvoiceModal = useCallback((invoiceId: string) => {
+    if (currentRole === 'client') {
+      Alert.alert('Access Restricted', 'Editing invoices is only permitted for freelancers and workspace owners.');
+      return;
+    }
+    setSelectedInvoiceId(invoiceId);
+    setActiveModal('edit_invoice');
+  }, [currentRole]);
 
   const openSubmitPaymentModal = useCallback((invoiceId?: string) => {
     if (invoiceId) setSelectedInvoiceId(invoiceId);
@@ -592,29 +588,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // CLIENT CRUD
   const addClient = useCallback(
     (clientData: Partial<ClientContact>): ClientContact => {
+      const cleanPhone = clientData.phone ? normalizePhoneNumber(clientData.phone) : '';
       const newClient: ClientContact = {
         id: `cl_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
         name: clientData.name || 'New Client',
         companyName: clientData.companyName || 'Company',
-        email: clientData.email || 'client@example.com',
-        phone: clientData.phone || '',
+        email: (clientData.email || '').trim().toLowerCase(),
+        phone: cleanPhone,
         status: clientData.status || 'active',
         isArchived: false,
         outstandingBalance: clientData.outstandingBalance || 0,
         internalNotes: clientData.internalNotes || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       setClients((prev) => [newClient, ...prev]);
       setLastCreatedClientId(newClient.id);
       FirebaseService.saveClient(newClient);
       return newClient;
     },
-    []
+    [currentUser.id, currentUser.workspaceId]
   );
 
   const updateClient = useCallback(
     (clientId: string, updates: Partial<ClientContact>) => {
+      const sanitizedUpdates = { ...updates };
+      if (sanitizedUpdates.phone) {
+        sanitizedUpdates.phone = normalizePhoneNumber(sanitizedUpdates.phone);
+      }
       setClients((prev) => {
-        const next = prev.map((c) => (c.id === clientId ? { ...c, ...updates } : c));
+        const next = prev.map((c) => (c.id === clientId ? { ...c, ...sanitizedUpdates, updatedAt: new Date().toISOString() } : c));
         const updated = next.find((c) => c.id === clientId);
         if (updated) FirebaseService.saveClient(updated);
         return next;
@@ -658,6 +663,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setNotifications((prev) => [
       {
         id: `notif_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId,
         title: 'Client Invited',
         message: `Portal invitation link dispatched to client.`,
         timeAgo: 'Just now',
@@ -666,14 +673,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       },
       ...prev,
     ]);
-  }, []);
+  }, [currentUser.id, currentUser.workspaceId]);
 
   // PROJECT CRUD
   const addProject = useCallback(
     (projectData: Partial<Project>): Project => {
-      const matchedClient =
-        clients.find((c) => c.id === projectData.clientId) || clients[0];
-      const initials = (matchedClient?.name || 'CP')
+      const matchedClient = clients.find((c) => c.id === projectData.clientId);
+      const clientName = matchedClient?.name || projectData.clientName || 'Client';
+      const initials = clientName
         .split(' ')
         .map((p) => p[0])
         .join('')
@@ -682,10 +689,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const newProj: Project = {
         id: `prj_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
         title: projectData.title || 'New Project',
-        clientId: matchedClient?.id || 'cl_senuri',
-        clientName: matchedClient?.name || 'Senuri Perera',
+        clientId: matchedClient ? matchedClient.id : (projectData.clientId || ''),
+        clientName: clientName,
         clientInitials: initials,
+        clientUid: matchedClient?.linkedUserId || null,
+        coverImage: projectData.coverImage || undefined,
         status: projectData.status || 'In Progress',
         progressPercentage: projectData.progressPercentage || 0,
         totalTasks: projectData.totalTasks || 0,
@@ -712,7 +723,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             order: 1,
           },
         ],
-        terms: [
+        terms: projectData.terms || [
           {
             id: `trm_${Date.now()}_1`,
             title: 'Standard Revision Limit',
@@ -723,13 +734,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         ],
         scopeChanges: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       setProjects((prev) => [newProj, ...prev]);
       FirebaseService.saveProject(newProj);
       return newProj;
     },
-    [clients, currentUser.id]
+    [clients, currentUser.id, currentUser.workspaceId]
   );
 
   const updateProject = useCallback(
@@ -909,26 +922,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         priority = arg4 || 'Medium';
       }
 
-      const activeProj = projects.find((p) => p.id === projectId) || projects[0];
+      const activeProj = projects.find((p) => p.id === projectId);
       const newTask: TaskItem = {
         id: `tsk_${Date.now()}`,
-        projectId,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
+        clientUid: activeProj?.clientUid || null,
+        projectId: activeProj ? activeProj.id : projectId,
         title,
-        projectTitle: activeProj?.title || 'CeylonBites Brand & Website',
+        projectTitle: activeProj?.title || 'Project Task',
         description: typeof arg1 === 'object' ? arg1.description || '' : '',
         status: typeof arg1 === 'object' && arg1.status ? arg1.status : 'pending',
-        assignee: typeof arg1 === 'object' ? arg1.assignee || 'Kasun Alwis' : 'Kasun Alwis',
+        assignee: typeof arg1 === 'object' ? arg1.assignee || currentUser.name : currentUser.name,
         estimatedHours: typeof arg1 === 'object' ? arg1.estimatedHours || 2 : 2,
         scheduledTime,
         dueDate: typeof arg1 === 'object' && arg1.dueDate ? arg1.dueDate : '2026-10-15',
         completed: typeof arg1 === 'object' && arg1.completed !== undefined ? arg1.completed : false,
         order: tasks.length + 1,
         priority,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       setTasks((prev) => [...prev, newTask]);
       FirebaseService.saveTask(newTask);
     },
-    [projects, tasks.length]
+    [projects, tasks.length, currentUser.id, currentUser.name, currentUser.workspaceId]
   );
 
   const toggleTask = useCallback((taskId: string) => {
@@ -1183,7 +1201,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       arg3?: any,
       arg4?: any
     ) => {
-      let projectId = projects[0]?.id || 'prj_ceylonbites';
+      let projectId = projects[0]?.id || '';
       let name = 'Homepage Deliverable';
       let notes = 'Ready for client review.';
       let fileName = 'Deliverable-file.pdf';
@@ -1208,8 +1226,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         projects.find((p) => p.id === projectId) || projects[0];
       const newDel: DeliverableItem = {
         id: `del_${Date.now()}`,
-        projectId: activeProj?.id || 'prj_ceylonbites',
-        projectTitle: activeProj?.title || 'CeylonBites Brand & Website',
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || (activeProj ? activeProj.workspaceId : `ws_${currentUser.id}`),
+        clientUid: activeProj?.clientUid || null,
+        projectId: activeProj?.id || projectId || '',
+        projectTitle: activeProj?.title || 'Deliverable Review',
         deliverableName: name,
         fileName: attachment?.name || fileName,
         fileSize: attachment?.size
@@ -1233,6 +1254,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setNotifications((prev) => [
         {
           id: `notif_${Date.now()}`,
+          ownerUid: currentUser.id,
+          workspaceId: currentUser.workspaceId,
           title: 'Deliverable Submitted',
           message: `${name} uploaded for client approval.`,
           timeAgo: 'Just now',
@@ -1242,7 +1265,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ...prev,
       ]);
     },
-    [currentUser.name, projects]
+    [currentUser.id, currentUser.name, currentUser.workspaceId, projects]
   );
 
   const reviewDeliverable = useCallback(
@@ -1285,6 +1308,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setNotifications((prev) => [
         {
           id: `notif_${Date.now()}`,
+          ownerUid: currentUser.id,
+          workspaceId: currentUser.workspaceId,
           title: isApproved
             ? 'Deliverable Approved'
             : 'Changes Requested',
@@ -1300,7 +1325,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ...prev,
       ]);
     },
-    []
+    [currentUser.id, currentUser.workspaceId]
   );
 
   // INVOICES & PAYMENTS (Member 2 - Nimnadi S.D.T)
@@ -1311,20 +1336,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const matchedProj =
         projects.find((p) => p.id === invoiceData.projectId) || projects[0];
 
+      const validItems = invoiceData.items && invoiceData.items.length > 0
+        ? invoiceData.items
+        : [
+            {
+              id: 'itm_1',
+              description: 'Design & Development Retainer',
+              quantity: 1,
+              rate: invoiceData.totalAmount || 100000,
+              amount: invoiceData.totalAmount || 100000,
+            },
+          ];
+
+      const itemsSum = validItems.reduce(
+        (sum, it) => sum + (Number(it.amount) || ((Number(it.quantity) || 1) * (Number(it.rate) || 0))),
+        0
+      );
+      const subtotal = invoiceData.subtotal !== undefined
+        ? invoiceData.subtotal
+        : (itemsSum > 0 ? itemsSum : (invoiceData.totalAmount || 100000));
+      const taxRate = invoiceData.taxRate || 0;
+      const taxAmount = invoiceData.taxAmount !== undefined
+        ? invoiceData.taxAmount
+        : (taxRate > 0 ? (subtotal * taxRate) / 100 : 0);
+      const discount = invoiceData.discount || 0;
+      const calculatedTotal = Math.max(0, subtotal + taxAmount - discount);
+      const totalAmount = invoiceData.totalAmount !== undefined
+        ? invoiceData.totalAmount
+        : calculatedTotal;
+      const outstandingAmount = invoiceData.outstandingAmount !== undefined
+        ? invoiceData.outstandingAmount
+        : totalAmount;
+
       const newInv: Invoice = {
         id: `inv_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
+        clientUid: matchedClient?.linkedUserId || matchedProj?.clientUid || null,
         invoiceNumber:
           invoiceData.invoiceNumber || `INV-2026-0${invoices.length + 15}`,
-        projectId: matchedProj?.id || 'prj_ceylonbites',
-        projectTitle: matchedProj?.title || 'CeylonBites Brand & Website',
-        clientId: matchedClient?.id || 'cl_senuri',
-        clientName: matchedClient?.name || 'Senuri Perera',
-        totalAmount: invoiceData.totalAmount || 100000,
-        subtotal: invoiceData.subtotal || invoiceData.totalAmount || 100000,
-        discount: invoiceData.discount || 0,
-        taxAmount: invoiceData.taxAmount || 0,
+        projectId: matchedProj?.id || invoiceData.projectId || '',
+        projectTitle: matchedProj?.title || invoiceData.projectTitle || 'Project Retainer',
+        clientId: matchedClient?.id || invoiceData.clientId || '',
+        clientName: matchedClient?.name || invoiceData.clientName || 'Client',
+        totalAmount,
+        subtotal,
+        discount,
+        taxAmount,
+        taxRate,
         paidAmount: 0,
-        outstandingAmount: invoiceData.totalAmount || 100000,
+        outstandingAmount,
         currency: invoiceData.currency || 'LKR',
         issueDate:
           invoiceData.issueDate ||
@@ -1336,15 +1397,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         dueDate: invoiceData.dueDate || '30 Oct 2026',
         status: invoiceData.status || 'Draft',
         notes: invoiceData.notes || '',
-        items: invoiceData.items || [
-          {
-            id: 'itm_1',
-            description: 'Design & Development Retainer',
-            quantity: 1,
-            rate: invoiceData.totalAmount || 100000,
-            amount: invoiceData.totalAmount || 100000,
-          },
-        ],
+        items: validItems,
         payments: [],
       };
 
@@ -1352,7 +1405,78 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       FirebaseService.saveInvoice(newInv);
       return newInv;
     },
-    [clients, invoices.length, projects]
+    [clients, currentUser.id, currentUser.workspaceId, invoices.length, projects]
+  );
+
+  const updateInvoice = useCallback(
+    (invoiceId: string, updates: Partial<Invoice>) => {
+      let updatedInv: Invoice | null = null;
+      setInvoices((prev) => {
+        const next = prev.map((inv) => {
+          if (inv.id !== invoiceId) return inv;
+
+          const client = updates.clientId ? clients.find((c) => c.id === updates.clientId) : null;
+          const project = updates.projectId ? projects.find((p) => p.id === updates.projectId) : null;
+
+          const newItems = updates.items || inv.items;
+          const newSubtotal = updates.subtotal !== undefined
+            ? updates.subtotal
+            : newItems.reduce((s, it) => s + (it.quantity * it.rate), 0);
+          const newTaxRate = updates.taxRate !== undefined ? updates.taxRate : (inv.taxRate || 0);
+          const newTaxAmount = updates.taxAmount !== undefined
+            ? updates.taxAmount
+            : Math.round(newSubtotal * (newTaxRate / 100));
+          const newDiscount = updates.discount !== undefined ? updates.discount : (inv.discount || 0);
+          const newTotal = updates.totalAmount !== undefined
+            ? updates.totalAmount
+            : Math.max(0, newSubtotal + newTaxAmount - newDiscount);
+
+          const paid = inv.paidAmount || 0;
+          const remaining = Math.max(0, newTotal - paid);
+
+          let newStatus = updates.status || inv.status;
+          if (inv.status !== 'Draft' && inv.status !== 'Void') {
+            if (remaining === 0 && paid > 0) {
+              newStatus = 'Paid';
+            } else if (paid > 0 && remaining > 0) {
+              newStatus = 'Partially Paid';
+            } else {
+              newStatus = 'Sent';
+            }
+          }
+
+          updatedInv = {
+            ...inv,
+            clientId: updates.clientId || inv.clientId,
+            clientName: client?.name || (updates.clientName || inv.clientName),
+            clientUid: client?.linkedUserId || project?.clientUid || (updates.clientUid !== undefined ? updates.clientUid : inv.clientUid),
+            projectId: updates.projectId || inv.projectId,
+            projectTitle: project?.title || (updates.projectTitle || inv.projectTitle),
+            dueDate: updates.dueDate || inv.dueDate,
+            items: newItems,
+            subtotal: newSubtotal,
+            taxRate: newTaxRate,
+            taxAmount: newTaxAmount,
+            discount: newDiscount,
+            totalAmount: newTotal,
+            outstandingAmount: remaining,
+            notes: updates.notes !== undefined ? updates.notes : inv.notes,
+            status: newStatus,
+            updatedAt: new Date().toISOString(),
+          };
+
+          return updatedInv;
+        });
+
+        if (updatedInv) {
+          FirebaseService.saveInvoice(updatedInv);
+        }
+        return next;
+      });
+
+      return updatedInv;
+    },
+    [clients, projects]
   );
 
   const deleteInvoice = useCallback((invoiceId: string) => {
@@ -1436,6 +1560,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const targetInv = invoices.find((i) => i.id === invoiceId);
       const newTx: TransactionItem = {
         id: `tx_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
+        clientUid: targetInv?.clientUid || null,
         invoiceId,
         source: 'payment',
         title: `Payment · ${targetInv?.clientName || 'Client'}`,
@@ -1448,8 +1575,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         occurredAt: now.toISOString(),
       };
       setTransactions((prev) => [newTx, ...prev]);
+      FirebaseService.saveTransaction(newTx);
     },
-    [invoices]
+    [currentUser.id, currentUser.workspaceId, invoices]
   );
 
   const submitPayment = useCallback(
@@ -1572,6 +1700,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (verifiedTx) {
         setTransactions((prev) => [verifiedTx!, ...prev]);
+        FirebaseService.saveTransaction(verifiedTx);
       }
 
       setNotifications((prev) => [
@@ -1617,6 +1746,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const now = new Date();
       const newTx: TransactionItem = {
         id: `tx_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
+        clientUid: null,
         source: transaction.source || 'expense',
         title: transaction.title || 'Expense Item',
         subtitle: transaction.subtitle,
@@ -1629,12 +1761,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         attachment: transaction.attachment,
       };
       setTransactions((prev) => [newTx, ...prev]);
+      FirebaseService.saveTransaction(newTx);
     },
-    []
+    [currentUser.id, currentUser.workspaceId]
   );
 
   const deleteTransaction = useCallback((transactionId: string) => {
     setTransactions((prev) => prev.filter((t) => t.id !== transactionId));
+    FirebaseService.deleteTransaction(transactionId);
   }, []);
 
   // MESSAGING (Member 4 - Silva S.T.S)
@@ -1674,6 +1808,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const newMsg: MessageItem = {
         id: `msg_${Date.now()}`,
+        ownerUid: currentUser.id,
+        workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
+        participantUids: [currentUser.id, clientId],
         clientId,
         projectId,
         senderId: currentUser.id,
@@ -1689,7 +1826,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setMessages((prev) => [...prev, newMsg]);
       FirebaseService.saveMessage(newMsg);
     },
-    [currentUser.id, currentUser.name, currentUser.role]
+    [currentUser.id, currentUser.name, currentUser.role, currentUser.workspaceId]
   );
 
   // COMMENTS
@@ -1729,12 +1866,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         visibility: cmtVisibility,
       };
       setComments((prev) => [...prev, newCmt]);
+      FirebaseService.saveComment(newCmt);
     },
     [currentUser.id, currentUser.name, currentUser.role, projects]
   );
 
   const deleteComment = useCallback((commentId: string) => {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
+    FirebaseService.deleteComment(commentId);
   }, []);
 
   // REMINDERS (Member 1 - Kumuditha Perera)
@@ -1751,6 +1890,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (typeof dataOrTitle === 'object') {
         newRem = {
           id: `rem_${Date.now()}`,
+          ownerUid: currentUser.id,
+          workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
           title: dataOrTitle.title || 'Untitled Reminder',
           note: dataOrTitle.note,
           dateTime: dataOrTitle.dateTime || new Date().toISOString(),
@@ -1766,6 +1907,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         newRem = {
           id: `rem_${Date.now()}`,
+          ownerUid: currentUser.id,
+          workspaceId: currentUser.workspaceId || `ws_${currentUser.id}`,
           title: dataOrTitle,
           dateTime: dateTime || new Date().toISOString(),
           status: 'pending',
@@ -1778,37 +1921,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       }
       setReminders((prev) => [newRem, ...prev]);
+      FirebaseService.saveReminder(newRem);
     },
-    []
+    [currentUser.id, currentUser.workspaceId]
   );
 
   const toggleReminder = useCallback((reminderId: string) => {
-    setReminders((prev) =>
-      prev.map((r) =>
+    setReminders((prev) => {
+      const next = prev.map((r) =>
         r.id === reminderId
           ? {
               ...r,
-              status: r.status === 'completed' ? 'pending' : 'completed',
+              status: r.status === 'completed' ? ('pending' as const) : ('completed' as const),
             }
           : r
-      )
-    );
+      );
+      const updated = next.find((r) => r.id === reminderId);
+      if (updated) FirebaseService.saveReminder(updated);
+      return next;
+    });
   }, []);
 
   const snoozeReminder = useCallback((reminderId: string, days = 1) => {
-    setReminders((prev) =>
-      prev.map((r) => {
+    setReminders((prev) => {
+      const next = prev.map((r) => {
         if (r.id === reminderId) {
           const nextDate = new Date(Date.now() + days * 86400000).toISOString();
           return { ...r, dateTime: nextDate };
         }
         return r;
-      })
-    );
+      });
+      const updated = next.find((r) => r.id === reminderId);
+      if (updated) FirebaseService.saveReminder(updated);
+      return next;
+    });
   }, []);
 
   const deleteReminder = useCallback((reminderId: string) => {
     setReminders((prev) => prev.filter((r) => r.id !== reminderId));
+    FirebaseService.deleteReminder(reminderId);
   }, []);
 
   // TEAM
@@ -1839,21 +1990,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // PROFILE & AUTH
   const updateProfile = useCallback((updates: Partial<User>) => {
-    setUserOverrides((prev) => ({ ...prev, ...updates }));
-  }, []);
+    setUserOverrides((prev) => {
+      const next = { ...prev, ...updates };
+      const full: User = { ...currentUser, ...next };
+      FirebaseService.saveUser(full);
+      StorageService.saveSession(full);
+      return next;
+    });
+  }, [currentUser]);
 
   const updateCompanyDetails = useCallback((updates: Partial<User>) => {
-    setUserOverrides((prev) => ({ ...prev, ...updates }));
-  }, []);
+    setUserOverrides((prev) => {
+      const next = { ...prev, ...updates };
+      const full: User = { ...currentUser, ...next };
+      FirebaseService.saveUser(full);
+      StorageService.saveSession(full);
+      return next;
+    });
+  }, [currentUser]);
 
   const logout = useCallback(async () => {
-    await StorageService.saveSession(null);
+    await AuthService.signOut();
+    setUserOverrides({});
+    setCurrentRole('freelancer');
   }, []);
 
   const resetPassword = useCallback(
-    async (_email: string, _newPassword: string, _currentPassword?: string) => {
-      // Password updated in memory / persistent store
-      return true;
+    async (email: string, _newPassword?: string, _currentPassword?: string) => {
+      const res = await AuthService.sendPasswordReset(email);
+      return res.success;
     },
     []
   );
@@ -1905,7 +2070,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const activeProjects =
       currentRole === 'client'
         ? projects.filter(
-            (p) => p.clientId === currentUser.clientId || p.clientId === 'cl_senuri'
+            (p) =>
+              p.clientUid === currentUser.id ||
+              (currentUser.clientId && p.clientId === currentUser.clientId)
           )
         : projects;
 
@@ -1913,15 +2080,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const awaitingReview = deliverables.filter(
       (d) => d.status === 'action_required'
     ).length;
+    const upcomingDeadlines = projects.filter(
+      (p) => p.status === 'In Progress' && !p.isArchived
+    ).length;
 
     return {
       activeProjectsCount: activeProjects.length,
       totalClientsCount: clients.filter((c) => !c.isArchived).length,
-      upcomingDeadlinesCount: 2,
+      upcomingDeadlinesCount: upcomingDeadlines,
       pendingTasksCount: pendingTasks,
       awaitingReviewCount: awaitingReview,
     };
-  }, [projects, tasks, deliverables, clients, currentRole, currentUser.clientId]);
+  }, [projects, tasks, deliverables, clients, currentRole, currentUser.id, currentUser.clientId]);
 
   const activeMeeting = meetings[0] || INITIAL_MEETING;
   const deliverable = deliverables[0] || INITIAL_DELIVERABLE;
@@ -1949,6 +2119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         openClientDetailsModal,
         openClientsDirectoryModal,
         openCreateInvoiceModal,
+        openEditInvoiceModal,
         openSubmitPaymentModal,
         openSubmitDeliverableModal,
         openReviewDeliverableModal,
@@ -2009,6 +2180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         reviewDeliverable,
 
         addInvoice,
+        updateInvoice,
         deleteInvoice,
         issueInvoice,
         voidInvoice,

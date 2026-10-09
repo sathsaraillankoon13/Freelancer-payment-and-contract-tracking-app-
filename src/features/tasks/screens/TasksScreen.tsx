@@ -18,6 +18,7 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { TaskItem } from '@/types';
 import { ScreenBackdrop } from '@/components/ui/Surface';
+import { DatePickerModal } from '@/components/common/DatePickerModal';
 
 export const TasksScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -49,6 +50,7 @@ export const TasksScreen: React.FC = () => {
   const [formDueDate, setFormDueDate] = useState('2026-10-15');
   const [formAssignee, setFormAssignee] = useState('Kasun Alwis');
   const [formHours, setFormHours] = useState('3.0');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Filtered Tasks
   const filteredTasks = useMemo(() => {
@@ -793,13 +795,16 @@ export const TasksScreen: React.FC = () => {
             <View style={styles.twoColRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.formLabel}>Due Date</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.textMuted}
-                  value={formDueDate}
-                  onChangeText={setFormDueDate}
-                />
+                <TouchableOpacity
+                  style={[styles.formInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                  onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 13, color: formDueDate ? colors.textPrimary : colors.textMuted }}>
+                    {formDueDate || 'YYYY-MM-DD'}
+                  </Text>
+                  <Feather name="calendar" size={15} color={colors.buttonPrimary} />
+                </TouchableOpacity>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.formLabel}>Estimated Hours</Text>
@@ -837,6 +842,14 @@ export const TasksScreen: React.FC = () => {
             </TouchableOpacity>
           </ScrollView>
         </View>
+
+        <DatePickerModal
+          visible={showDatePicker}
+          onClose={() => setShowDatePicker(false)}
+          onSelectDate={(d) => setFormDueDate(d)}
+          initialDate={formDueDate}
+          title="Select Task Due Date"
+        />
       </Modal>
     </View>
   );

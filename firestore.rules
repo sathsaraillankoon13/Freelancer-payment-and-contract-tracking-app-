@@ -2,8 +2,142 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isDocOwner(data) {
+      return isAuthenticated() && (
+        (data.ownerUid != null && data.ownerUid == request.auth.uid) ||
+        (data.userId != null && data.userId == request.auth.uid) ||
+        (data.id != null && data.id == request.auth.uid)
+      );
+    }
+
+    function isClient(data) {
+      return isAuthenticated() && (
+        (data.clientUid != null && data.clientUid == request.auth.uid) ||
+        (data.linkedUserId != null && data.linkedUserId == request.auth.uid)
+      );
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isUser(userId);
+      allow delete: if isUser(userId);
+    }
+
+    // Clients Collection (Client Contacts created by Freelancers)
+    match /clients/{clientId} {
+      allow read: if isDocOwner(resource.data) || isClient(resource.data);
+      allow create: if isAuthenticated() && (request.resource.data.ownerUid == request.auth.uid);
+      allow update: if isDocOwner(resource.data) || (
+        // Allow client linking during verified phone or email claiming
+        isAuthenticated() && request.resource.data.linkedUserId == request.auth.uid
+      );
+      allow delete: if isDocOwner(resource.data);
+    }
+
+    // Projects Collection
+    match /projects/{projectId} {
+      allow read: if isDocOwner(resource.data) || isClient(resource.data);
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      // Freelancer can update anything; assigned client can update non-ownership fields (e.g. status, milestones)
+      allow update: if isDocOwner(resource.data) || (
+        isClient(resource.data) &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.workspaceId == resource.data.workspaceId &&
+        request.resource.data.clientUid == resource.data.clientUid
+      );
+      allow delete: if isDocOwner(resource.data);
+    }
+
+    // Invoices Collection
+    match /invoices/{invoiceId} {
+      allow read: if isDocOwner(resource.data) || isClient(resource.data);
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isDocOwner(resource.data) || (
+        isClient(resource.data) &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.workspaceId == resource.data.workspaceId &&
+        request.resource.data.clientUid == resource.data.clientUid
+      );
+      allow delete: if isDocOwner(resource.data);
+    }
+
+    // Deliverables Collection
+    match /deliverables/{deliverableId} {
+      allow read: if isDocOwner(resource.data) || isClient(resource.data);
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isDocOwner(resource.data) || isClient(resource.data);
+      allow delete: if isDocOwner(resource.data);
+    }
+
+    // Tasks Collection
+    match /tasks/{taskId} {
+      allow read: if isDocOwner(resource.data) || isClient(resource.data);
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isDocOwner(resource.data) || isClient(resource.data);
+      allow delete: if isDocOwner(resource.data);
+    }
+
+    // Transactions / Expenses / Payments Collection
+    match /transactions/{transactionId} {
+      allow read: if isDocOwner(resource.data) || isClient(resource.data);
+      allow create: if isAuthenticated();
+      allow update: if isDocOwner(resource.data);
+      allow delete: if isDocOwner(resource.data);
+    }
+
+    // Reminders Collection (Private to Freelancer Owner)
+    match /reminders/{reminderId} {
+      allow read: if isDocOwner(resource.data);
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if isDocOwner(resource.data);
+    }
+
+    // Messages Collection
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && (
+        isDocOwner(resource.data) ||
+        (resource.data.participantUids != null && request.auth.uid in resource.data.participantUids) ||
+        (resource.data.senderId != null && resource.data.senderId == request.auth.uid) ||
+        (resource.data.recipientId != null && resource.data.recipientId == request.auth.uid)
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if isDocOwner(resource.data) || (
+        resource.data.senderId != null && resource.data.senderId == request.auth.uid
+      );
+    }
+
+    // Comments Collection
+    match /comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (
+        resource.data.authorId == request.auth.uid ||
+        isDocOwner(resource.data)
+      );
+    }
+
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.recipientId == request.auth.uid ||
+        resource.data.ownerUid == request.auth.uid
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (
+        resource.data.recipientId == request.auth.uid ||
+        resource.data.ownerUid == request.auth.uid
+      );
     }
   }
 }

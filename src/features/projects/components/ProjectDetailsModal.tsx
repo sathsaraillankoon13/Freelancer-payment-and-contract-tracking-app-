@@ -10,6 +10,7 @@ import {
   Alert,
   Share,
   Platform,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,8 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { router } from 'expo-router';
 import { ProjectStatus } from '@/types';
+import { pickImage } from '@/services/attachments';
+import { DatePickerModal } from '@/components/common/DatePickerModal';
 
 const PROJECT_STATUSES: ProjectStatus[] = [
   'Draft',
@@ -57,6 +60,7 @@ export const ProjectDetailsModal: React.FC = () => {
     respondScopeChange,
     deliverables,
     invoices,
+    updateProject,
     updateProjectStatus,
     archiveProject,
     deleteProject,
@@ -72,6 +76,51 @@ export const ProjectDetailsModal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     'overview' | 'scope' | 'tasks' | 'milestones' | 'deliverables' | 'comments' | 'invoices'
   >('overview');
+
+  const [isEditProjectModalVisible, setIsEditProjectModalVisible] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+  const [editDeadline, setEditDeadline] = useState('');
+  const [editScopeNotes, setEditScopeNotes] = useState('');
+  const [editCoverImage, setEditCoverImage] = useState<string | null>(null);
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+
+  const handleOpenEditProject = () => {
+    if (!project) return;
+    setEditTitle(project.title);
+    setEditBudget(project.budget ? String(project.budget) : '');
+    setEditDeadline(project.dueDate || '');
+    setEditScopeNotes(project.scopeNotes || '');
+    setEditCoverImage(project.coverImage || null);
+    setIsEditProjectModalVisible(true);
+  };
+
+  const handlePickEditCover = async () => {
+    try {
+      const img = await pickImage();
+      if (img) setEditCoverImage(img.uri);
+    } catch (e) {
+      Alert.alert('Cover Image', e instanceof Error ? e.message : 'Unable to select image.');
+    }
+  };
+
+  const handleSaveProjectEdit = () => {
+    if (!project) return;
+    if (!editTitle.trim()) {
+      Alert.alert('Required Field', 'Please enter a project name.');
+      return;
+    }
+    const b = editBudget.trim() ? Number(editBudget) : project.budget;
+    updateProject(project.id, {
+      title: editTitle.trim(),
+      budget: Number.isFinite(b) ? b : project.budget,
+      dueDate: editDeadline.trim() || project.dueDate,
+      scopeNotes: editScopeNotes.trim(),
+      coverImage: editCoverImage || undefined,
+    });
+    setIsEditProjectModalVisible(false);
+    Alert.alert('Project Updated', 'Project details saved successfully.');
+  };
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
@@ -310,6 +359,30 @@ export const ProjectDetailsModal: React.FC = () => {
                   {project.status} {isProvider ? '▾' : ''}
                 </Text>
               </TouchableOpacity>
+
+              {isProvider && (
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: 20,
+                    backgroundColor: '#F3EFFC',
+                    borderWidth: 1,
+                    borderColor: '#ECEAF5',
+                    marginLeft: 8,
+                  }}
+                  onPress={handleOpenEditProject}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="edit-2" size={12} color={colors.buttonPrimary} />
+                  <Text style={{ fontSize: 12, fontFamily: typography.fonts.semiBold, color: colors.buttonPrimary }}>
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Status Picker Carousel */}
@@ -344,9 +417,16 @@ export const ProjectDetailsModal: React.FC = () => {
               </View>
             )}
 
+            {project.coverImage ? (
+              <Image
+                source={{ uri: project.coverImage }}
+                style={{ width: '100%', height: 160, borderRadius: 16, marginBottom: 14, backgroundColor: '#F3F0FA' }}
+                resizeMode="cover"
+              />
+            ) : null}
             <Text style={styles.projectTitle}>{project.title}</Text>
             <Text style={styles.projectScope} numberOfLines={3}>
-              {project.scopeNotes || 'Comprehensive CRM execution and delivery scope.'}
+              {project.scopeNotes || 'Comprehensive project execution and delivery scope.'}
             </Text>
 
             {/* Client Mini Card */}
@@ -1513,6 +1593,27 @@ export const ProjectDetailsModal: React.FC = () => {
               </Text>
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
                 <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    paddingVertical: 10,
+                    borderRadius: 10,
+                    backgroundColor: '#F3EFFC',
+                    borderWidth: 1,
+                    borderColor: '#ECEAF5',
+                  }}
+                  onPress={handleOpenEditProject}
+                >
+                  <Feather name="edit-2" size={15} color={colors.buttonPrimary} />
+                  <Text style={{ fontSize: 13, fontFamily: typography.fonts.semiBold, color: colors.buttonPrimary }}>
+                    Edit Details
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                   style={styles.archiveProjectBtn}
                   onPress={handleArchiveProject}
                 >
@@ -1522,7 +1623,7 @@ export const ProjectDetailsModal: React.FC = () => {
                     color={colors.textSecondary}
                   />
                   <Text style={styles.archiveProjectBtnText}>
-                    {project.isArchived ? 'Restore' : 'Archive Project'}
+                    {project.isArchived ? 'Restore' : 'Archive'}
                   </Text>
                 </TouchableOpacity>
 
@@ -1531,13 +1632,179 @@ export const ProjectDetailsModal: React.FC = () => {
                   onPress={handleDeleteProject}
                 >
                   <Feather name="trash-2" size={16} color="#DC2626" />
-                  <Text style={styles.deleteProjectBtnText}>Delete Project</Text>
+                  <Text style={styles.deleteProjectBtnText}>Delete</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
         </ScrollView>
       </View>
+
+      {/* Edit Project Modal */}
+      <Modal
+        visible={isEditProjectModalVisible}
+        animationType="slide"
+        presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+        onRequestClose={() => setIsEditProjectModalVisible(false)}
+      >
+        <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
+          <ScreenBackdrop />
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setIsEditProjectModalVisible(false)}>
+              <Feather name="arrow-left" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Edit Project</Text>
+            <TouchableOpacity onPress={() => setIsEditProjectModalVisible(false)}>
+              <Feather name="x" size={22} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: 20, paddingBottom: Math.max(insets.bottom, 24) + 40 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Cover Image */}
+            <Text style={[styles.fieldLabel, { marginBottom: 8 }]}>Cover & Branding</Text>
+            {editCoverImage ? (
+              <View style={{ marginBottom: 16 }}>
+                <Image
+                  source={{ uri: editCoverImage }}
+                  style={{ width: '100%', height: 140, borderRadius: 14, backgroundColor: '#F3F0FA' }}
+                  resizeMode="cover"
+                />
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                  <TouchableOpacity
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FAF8FD', borderWidth: 1, borderColor: '#ECEAF5' }}
+                    onPress={handlePickEditCover}
+                  >
+                    <Feather name="refresh-cw" size={13} color={colors.buttonPrimary} />
+                    <Text style={{ fontSize: 12, color: colors.buttonPrimary, fontFamily: typography.fonts.semiBold }}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FCA5A5' }}
+                    onPress={() => setEditCoverImage(null)}
+                  >
+                    <Feather name="trash-2" size={13} color="#DC2626" />
+                    <Text style={{ fontSize: 12, color: '#DC2626', fontFamily: typography.fonts.semiBold }}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={{
+                  padding: 16,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: '#D8D4E8',
+                  borderStyle: 'dashed',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                  backgroundColor: '#FAF8FD',
+                }}
+                onPress={handlePickEditCover}
+              >
+                <Feather name="image" size={24} color={colors.buttonPrimary} />
+                <Text style={{ fontSize: 13, fontFamily: typography.fonts.semiBold, color: colors.textPrimary, marginTop: 6 }}>
+                  Upload Project Cover
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>PNG, JPG up to 5MB</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Title */}
+            <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>Project Title *</Text>
+            <TextInput
+              style={{ backgroundColor: colors.white, borderWidth: 1, borderColor: '#ECEAF5', borderRadius: 12, padding: 12, fontSize: 14, color: colors.textPrimary, marginBottom: 16 }}
+              value={editTitle}
+              onChangeText={setEditTitle}
+              placeholder="e.g. Website Redesign"
+            />
+
+            {/* Budget */}
+            <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>Budget (LKR)</Text>
+            <TextInput
+              style={{ backgroundColor: colors.white, borderWidth: 1, borderColor: '#ECEAF5', borderRadius: 12, padding: 12, fontSize: 14, color: colors.textPrimary, marginBottom: 16 }}
+              value={editBudget}
+              onChangeText={setEditBudget}
+              keyboardType="numeric"
+              placeholder="150000"
+            />
+
+            {/* Deadline */}
+            <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>Deadline</Text>
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: colors.white,
+                borderWidth: 1,
+                borderColor: '#ECEAF5',
+                borderRadius: 12,
+                padding: 14,
+                marginBottom: 16,
+              }}
+              onPress={() => setShowEditDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Feather name="calendar" size={16} color={colors.buttonPrimary} />
+                <Text style={{ fontSize: 14, color: editDeadline ? colors.textPrimary : colors.textMuted }}>
+                  {editDeadline || 'Select Deadline'}
+                </Text>
+              </View>
+              <Feather name="chevron-down" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            {/* Scope Notes */}
+            <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>Scope & Notes</Text>
+            <TextInput
+              style={{
+                backgroundColor: colors.white,
+                borderWidth: 1,
+                borderColor: '#ECEAF5',
+                borderRadius: 12,
+                padding: 12,
+                fontSize: 14,
+                color: colors.textPrimary,
+                minHeight: 90,
+                textAlignVertical: 'top',
+                marginBottom: 24,
+              }}
+              value={editScopeNotes}
+              onChangeText={setEditScopeNotes}
+              placeholder="Project deliverables, scope notes..."
+              multiline
+            />
+
+            {/* Buttons */}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#F3F0FA', alignItems: 'center' }}
+                onPress={() => setIsEditProjectModalVisible(false)}
+              >
+                <Text style={{ fontFamily: typography.fonts.semiBold, fontSize: 14, color: colors.textSecondary }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1.5, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.buttonPrimary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+                onPress={handleSaveProjectEdit}
+              >
+                <Feather name="check" size={18} color={colors.white} />
+                <Text style={{ fontFamily: typography.fonts.bold, fontSize: 14, color: colors.white }}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+
+          <DatePickerModal
+            visible={showEditDatePicker}
+            onClose={() => setShowEditDatePicker(false)}
+            onSelectDate={(d) => setEditDeadline(d)}
+            initialDate={editDeadline}
+            title="Select Project Deadline"
+          />
+        </View>
+      </Modal>
     </Modal>
   );
 };
