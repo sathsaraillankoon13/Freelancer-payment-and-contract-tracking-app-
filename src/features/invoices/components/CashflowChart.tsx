@@ -9,7 +9,7 @@ import type { TransactionItem } from '@/types';
 
 function Bar({ value, maximum, color, index }: { value: number; maximum: number; color: string; index: number }) {
   const reduced = useReducedMotion();
-  const height = value ? Math.max(5, (value / maximum) * 124) : 2;
+  const height = value ? Math.max(10, (value / maximum) * 124) : 2;
   const [progress] = useState(() => new Animated.Value(reduced ? 1 : 0));
   useEffect(() => {
     progress.setValue(reduced ? 1 : 0);
@@ -27,7 +27,14 @@ export function CashflowChart({ transactions, currency }: { transactions: Transa
   const [period, setPeriod] = useState(6);
   const [selectedKey, setSelectedKey] = useState('');
   const { months, undated } = useMemo(() => monthlyCashflow(transactions, currency, period), [transactions, currency, period]);
-  const selected = months.find(m => m.key === selectedKey) || months[months.length - 1];
+  const latestActiveMonth = useMemo(() => {
+    for (let i = months.length - 1; i >= 0; i--) {
+      if (months[i].income > 0 || months[i].expenses > 0) return months[i];
+    }
+    return months[months.length - 1];
+  }, [months]);
+  const activeSelectedKey = selectedKey || latestActiveMonth.key;
+  const selected = months.find(m => m.key === activeSelectedKey) || months[months.length - 1];
   const income = months.reduce((sum, m) => sum + m.income, 0);
   const expenses = months.reduce((sum, m) => sum + m.expenses, 0);
   const maximum = Math.max(1, ...months.flatMap(m => [m.income, m.expenses]));

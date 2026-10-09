@@ -29,6 +29,8 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
     currentUser,
     projects,
     tasks,
+    deliverables,
+    meetings,
     toggleTask,
     addTask,
     financialSummary,
@@ -42,6 +44,9 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
   } = useAppContext();
 
   const activeProject = projects[0];
+  const pendingFeedbackDeliverable = deliverables.find(
+    (d) => d.status === 'action_required' || !!d.clientFeedback
+  );
 
   const handleNewProject = () => {
     openCreateProjectModal();
@@ -56,10 +61,15 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
   };
 
   const handleReviewFeedback = () => {
-    openReviewDeliverableModal();
+    if (pendingFeedbackDeliverable) {
+      openReviewDeliverableModal(pendingFeedbackDeliverable.id);
+    } else {
+      openReviewDeliverableModal();
+    }
   };
 
   const handleJoinCall = () => {
+    if (!activeMeeting) return;
     Alert.alert(
       'Join Meeting',
       `Launching Google Meet for ${activeMeeting.title}...`,
@@ -81,7 +91,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
         },
       ]);
     } else {
-      addTask('Homepage responsive QA check', activeProject?.title, 'Today');
+      addTask('Project deliverable review task', activeProject?.title, 'Today');
     }
   };
 
@@ -100,7 +110,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
           <View style={[styles.pillBadge, styles.pillPurple]}>
             <View style={[styles.pillDot, { backgroundColor: colors.buttonPrimary }]} />
             <Text style={styles.pillPurpleText}>
-              {metrics.activeProjectsCount} active projects
+              {metrics.activeProjectsCount} active {metrics.activeProjectsCount === 1 ? 'project' : 'projects'}
             </Text>
           </View>
 
@@ -119,7 +129,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
           <View style={styles.cashflowDateRow}>
             <Feather name="calendar" size={14} color={colors.buttonPrimary} />
             <Text style={styles.cashflowDateText}>
-              September 2026 • Cashflow status
+              Financial Overview • Cashflow status
             </Text>
           </View>
           <Text style={styles.cashflowStatusText}>
@@ -155,23 +165,29 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
       </View>
 
       {/* Action / Notification Banner */}
-      <TouchableOpacity
-        style={styles.notificationBanner}
-        activeOpacity={0.8}
-        onPress={handleReviewFeedback}
-      >
-        <View style={styles.notificationIconBox}>
-          <Feather name="message-square" size={18} color={colors.buttonPrimary} />
-        </View>
-        <View style={styles.notificationTextBox}>
-          <Text style={styles.notificationTitle}>Homepage feedback</Text>
-          <Text style={styles.notificationSubtitle}>Senuri Perera • CeylonBites</Text>
-        </View>
-        <View style={styles.reviewFeedbackRow}>
-          <Text style={styles.reviewFeedbackText}>Review feedback</Text>
-          <Feather name="chevron-right" size={14} color={colors.buttonPrimary} />
-        </View>
-      </TouchableOpacity>
+      {pendingFeedbackDeliverable && (
+        <TouchableOpacity
+          style={styles.notificationBanner}
+          activeOpacity={0.8}
+          onPress={handleReviewFeedback}
+        >
+          <View style={styles.notificationIconBox}>
+            <Feather name="message-square" size={18} color={colors.buttonPrimary} />
+          </View>
+          <View style={styles.notificationTextBox}>
+            <Text style={styles.notificationTitle}>{pendingFeedbackDeliverable.deliverableName}</Text>
+            <Text style={styles.notificationSubtitle}>
+              {pendingFeedbackDeliverable.clientFeedback
+                ? 'Client feedback received'
+                : pendingFeedbackDeliverable.projectTitle}
+            </Text>
+          </View>
+          <View style={styles.reviewFeedbackRow}>
+            <Text style={styles.reviewFeedbackText}>Review feedback</Text>
+            <Feather name="chevron-right" size={14} color={colors.buttonPrimary} />
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Quick Action Buttons Row */}
       <View style={styles.quickActionsRow}>
@@ -261,12 +277,14 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
       {/* Active Project Section */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Active project</Text>
-        <TouchableOpacity onPress={onNavigateToProjects}>
-          <Text style={styles.sectionLink}>View all</Text>
-        </TouchableOpacity>
+        {projects.length > 0 && (
+          <TouchableOpacity onPress={onNavigateToProjects}>
+            <Text style={styles.sectionLink}>View all</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {activeProject && (
+      {activeProject ? (
         <TouchableOpacity
           style={styles.projectCard}
           activeOpacity={0.85}
@@ -275,7 +293,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
           <View style={styles.projectTopRow}>
             <View style={styles.projectAvatarBox}>
               <Text style={styles.projectAvatarText}>
-                {activeProject.clientInitials}
+                {activeProject.clientInitials || 'PR'}
               </Text>
             </View>
 
@@ -285,7 +303,7 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
               </Text>
               <View style={styles.clientRow}>
                 <View style={styles.smallAvatar}>
-                  <Text style={styles.smallAvatarText}>SP</Text>
+                  <Text style={styles.smallAvatarText}>{activeProject.clientInitials || 'CL'}</Text>
                 </View>
                 <Text style={styles.clientName}>{activeProject.clientName}</Text>
               </View>
@@ -321,31 +339,48 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
             <Text style={styles.daysLeftText}>{activeProject.daysLeftText}</Text>
           </View>
         </TouchableOpacity>
+      ) : (
+        <View style={[styles.projectCard, { alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }]}>
+          <Feather name="folder-plus" size={32} color={colors.buttonPrimary} style={{ marginBottom: 8 }} />
+          <Text style={[styles.projectName, { textAlign: 'center', marginBottom: 4 }]}>No active projects yet</Text>
+          <Text style={[styles.clientName, { textAlign: 'center', marginBottom: 14 }]}>Create your first project to get started</Text>
+          <TouchableOpacity
+            style={[styles.primaryActionButton, { paddingHorizontal: 16 }]}
+            onPress={handleNewProject}
+          >
+            <Feather name="plus" size={14} color={colors.white} style={{ marginRight: 6 }} />
+            <Text style={styles.primaryActionText}>Create Project</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Upcoming Meeting Section */}
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>Upcoming meeting</Text>
-      </View>
+      {meetings.length > 0 && activeMeeting && (
+        <>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Upcoming meeting</Text>
+          </View>
 
-      <View style={styles.meetingCard}>
-        <View style={styles.meetingIconBox}>
-          <Feather name="calendar" size={20} color={colors.buttonPrimary} />
-        </View>
+          <View style={styles.meetingCard}>
+            <View style={styles.meetingIconBox}>
+              <Feather name="calendar" size={20} color={colors.buttonPrimary} />
+            </View>
 
-        <View style={styles.meetingInfoBox}>
-          <Text style={styles.meetingTitle}>{activeMeeting.title}</Text>
-          <Text style={styles.meetingTimeText}>{activeMeeting.timeText}</Text>
-        </View>
+            <View style={styles.meetingInfoBox}>
+              <Text style={styles.meetingTitle}>{activeMeeting.title}</Text>
+              <Text style={styles.meetingTimeText}>{activeMeeting.timeText}</Text>
+            </View>
 
-        <TouchableOpacity
-          style={styles.joinCallButton}
-          activeOpacity={0.8}
-          onPress={handleJoinCall}
-        >
-          <Text style={styles.joinCallText}>Join call</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity
+              style={styles.joinCallButton}
+              activeOpacity={0.8}
+              onPress={handleJoinCall}
+            >
+              <Text style={styles.joinCallText}>Join call</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* Today's Tasks Section */}
       <View style={styles.sectionHeaderRow}>
@@ -363,45 +398,53 @@ export const FreelancerHomeView: React.FC<FreelancerHomeViewProps> = ({
       </View>
 
       <View style={styles.tasksContainer}>
-        {tasks.map((task) => (
-          <TouchableOpacity
-            key={task.id}
-            style={styles.taskRow}
-            activeOpacity={0.7}
-            onPress={() => toggleTask(task.id)}
-          >
-            <View
-              style={[
-                styles.taskCheckbox,
-                task.completed && styles.taskCheckboxCompleted,
-              ]}
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <TouchableOpacity
+              key={task.id}
+              style={styles.taskRow}
+              activeOpacity={0.7}
+              onPress={() => toggleTask(task.id)}
             >
-              {task.completed && (
-                <Feather name="check" size={14} color={colors.white} />
-              )}
-            </View>
-
-            <View style={styles.taskTextBox}>
-              <Text
+              <View
                 style={[
-                  styles.taskTitle,
-                  task.completed && styles.taskTitleCompleted,
+                  styles.taskCheckbox,
+                  task.completed && styles.taskCheckboxCompleted,
                 ]}
               >
-                {task.title}
-              </Text>
-              <Text style={styles.taskMeta}>
-                {task.projectTitle} • {task.scheduledTime}
-              </Text>
-            </View>
+                {task.completed && (
+                  <Feather name="check" size={14} color={colors.white} />
+                )}
+              </View>
 
-            <MaterialCommunityIcons
-              name="drag-vertical"
-              size={20}
-              color="#D1D5DB"
-            />
-          </TouchableOpacity>
-        ))}
+              <View style={styles.taskTextBox}>
+                <Text
+                  style={[
+                    styles.taskTitle,
+                    task.completed && styles.taskTitleCompleted,
+                  ]}
+                >
+                  {task.title}
+                </Text>
+                <Text style={styles.taskMeta}>
+                  {task.projectTitle} • {task.scheduledTime}
+                </Text>
+              </View>
+
+              <MaterialCommunityIcons
+                name="drag-vertical"
+                size={20}
+                color="#D1D5DB"
+              />
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View style={[styles.taskRow, { justifyContent: 'center', paddingVertical: 18 }]}>
+            <Text style={{ fontFamily: typography.fonts.regular, fontSize: 13, color: colors.textSecondary }}>
+              No tasks scheduled. Tap + Add to add a task.
+            </Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

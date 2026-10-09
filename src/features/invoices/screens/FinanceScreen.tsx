@@ -4,8 +4,9 @@ import { CashflowChart } from '../components/CashflowChart';
 import { RecordTransactionModal } from '../components/RecordTransactionModal';
 import { financeSummary as summarize, money } from '@/utils/finance';
 import { exportFinanceReport, exportInvoice } from '@/services/financeExport';
+import { dateKey } from '@/utils/dates';
 import { MotionTouchable as TouchableOpacity } from '@/components/ui/Motion';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -27,6 +28,7 @@ export const FinanceScreen: React.FC = () => {
     invoices,
     transactions,
     openCreateInvoiceModal,
+    openEditInvoiceModal,
     openSubmitPaymentModal,
     verifyPayment,
     rejectPayment,
@@ -45,22 +47,145 @@ export const FinanceScreen: React.FC = () => {
   const [recording, setRecording] = useState(false);
   const [exporting, setExporting] = useState(false);
   const currencies = Array.from(new Set([currentUser?.currency || 'LKR', ...invoices.map(i => i.currency), ...transactions.map(t => t.currency)]));
-  const financialSummary = summarize(invoices, transactions, currency);
-  const visibleTransactions = transactions.filter(t => t.currency === currency);
-  const downloadReport = async () => {
+
+  // Unified transactions: combines explicit transactions with verified invoice payments so cashflow and bars are 100% accurate
+  const allTransactions = useMemo(() => {
+    const list = [...transactions];
+    const existingTxKeys = new Set(
+      transactions.map((t) => `${t.invoiceId || ''}_${t.paymentId || ''}_${t.amount}`)
+    );
+    const invoicePaidKeys = new Set(
+      transactions.map((t) => `${t.invoiceId || ''}__${t.amount}`)
+    );
+
+    for (const inv of invoices) {
+      if (inv.currency !== currency) continue;
+
+      if (inv.payments && inv.payments.length > 0) {
+        for (const pay of inv.payments) {
+          if (pay.status === 'verified' && pay.amount > 0) {
+            const key = `${inv.id}_${pay.id}_${pay.amount}`;
+            const simpleKey = `${inv.id}__${pay.amount}`;
+            if (!existingTxKeys.has(key) && !invoicePaidKeys.has(simpleKey)) {
+              list.push({
+                id: `tx_inv_${inv.id}_${pay.id}`,
+                invoiceId: inv.id,
+                paymentId: pay.id,
+                source: 'payment',
+                title: `Payment · ${inv.clientName}`,
+                subtitle: inv.invoiceNumber,
+                amount: pay.amount,
+                type: 'income',
+                currency: inv.currency,
+                category: 'Client payment',
+                date: pay.submittedAt || pay.verifiedAt?.slice(0, 10) || inv.issueDate || dateKey(new Date()),
+                occurredAt: pay.verifiedAt || (pay.submittedAt ? `${pay.submittedAt}T12:00:00Z` : undefined),
+              });
+              existingTxKeys.add(key);
+              invoicePaidKeys.add(simpleKey);
+            }
+          }
+        }
+      } else if (inv.paidAmount > 0) {
+        const simpleKey = `${inv.id}__${inv.paidAmount}`;
+        if (!invoicePaidKeys.has(simpleKey)) {
+          list.push({
+            id: `tx_inv_${inv.id}_paid`,
+            invoiceId: inv.id,
+            source: 'payment',
+            title: `Payment · ${inv.clientName}`,
+            subtitle: inv.invoiceNumber,
+            amount: inv.paidAmount,
+            type: 'income',
+            currency: inv.currency,
+            category: 'Client payment',
+            date: inv.issueDate || inv.dueDate || dateKey(new Date()),
+            occurredAt: inv.createdAt,
+          });
+          invoicePaidKeys.add(simpleKey);
+        }
+      }
+    }
+
+    return list;
+  }, [transactions, invoices, currency]);
+
+  const financialSummary = summarize(invoices, allTransactions, currency);
+  const visibleTransactions = allTransactions.filter(t => t.currency === currency);
+  const downloadReport = () => {
     if (exporting) return;
-    setExporting(true);
-    try { await exportFinanceReport(invoices, transactions, currency, currentUser?.agencyName || currentUser?.name || 'ISAACIFY'); }
-    catch (error) { Alert.alert('Report could not be exported', error instanceof Error ? error.message : 'Please try again.'); }
-    finally { setExporting(false); }
+    const name = currentUser?.agencyName || currentUser?.name || 'ISAACIFY';
+    Alert.alert(
+      'Export Finance Report',
+      'Choose export action:',
+      [
+        {
+          text: 'Save as PDF / Print 🖨️',
+          onPress: async () => {
+            setExporting(true);
+            try {
+              await exportFinanceReport(invoices, transactions, currency, name, 'print');
+            } catch (error) {
+              Alert.alert('Report could not be exported', error instanceof Error ? error.message : 'Please try again.');
+            } finally {
+              setExporting(false);
+            }
+          },
+        },
+        {
+          text: 'Share PDF File 📄',
+          onPress: async () => {
+            setExporting(true);
+            try {
+              await exportFinanceReport(invoices, transactions, currency, name, 'share');
+            } catch (error) {
+              Alert.alert('Report could not be exported', error instanceof Error ? error.message : 'Please try again.');
+            } finally {
+              setExporting(false);
+            }
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
   const [exportingInvoice, setExportingInvoice] = useState<string | null>(null);
-  const shareInvoice = async (invoice: Invoice) => {
+  const shareInvoice = (invoice: Invoice) => {
     if (exportingInvoice) return;
-    setExportingInvoice(invoice.id);
-    try { await exportInvoice(invoice, currentUser?.agencyName || currentUser?.name || 'ISAACIFY'); }
-    catch (error) { Alert.alert('Invoice could not be exported', error instanceof Error ? error.message : 'Please try again.'); }
-    finally { setExportingInvoice(null); }
+    const name = currentUser?.agencyName || currentUser?.name || 'ISAACIFY';
+    Alert.alert(
+      'Download / Export Invoice',
+      `Invoice #${invoice.invoiceNumber}`,
+      [
+        {
+          text: 'Save as PDF / Print 🖨️',
+          onPress: async () => {
+            setExportingInvoice(invoice.id);
+            try {
+              await exportInvoice(invoice, name, 'print');
+            } catch (error) {
+              Alert.alert('Invoice could not be saved', error instanceof Error ? error.message : 'Please try again.');
+            } finally {
+              setExportingInvoice(null);
+            }
+          },
+        },
+        {
+          text: 'Share PDF File 📄',
+          onPress: async () => {
+            setExportingInvoice(invoice.id);
+            try {
+              await exportInvoice(invoice, name, 'share');
+            } catch (error) {
+              Alert.alert('Invoice could not be exported', error instanceof Error ? error.message : 'Please try again.');
+            } finally {
+              setExportingInvoice(null);
+            }
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
   const isClient = currentUser?.role === 'client';
 
@@ -315,7 +440,7 @@ export const FinanceScreen: React.FC = () => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
           <View style={styles.filterRow}>{currencies.map(value => <TouchableOpacity key={value} onPress={() => setCurrency(value)} accessibilityLabel={`Show ${value} balances`} accessibilityState={{ selected: currency === value }} style={[styles.filterPill, currency === value && styles.filterPillSelected]}><Text style={[styles.filterPillText, currency === value && styles.filterPillTextSelected]}>{value}</Text></TouchableOpacity>)}</View>
         </ScrollView>
-        {!isClient && canManageFinances && <CashflowChart transactions={transactions} currency={currency} />}
+        {!isClient && canManageFinances && <CashflowChart transactions={allTransactions} currency={currency} />}
         {/* Financial Summary Cards */}
         {!isClient && canManageFinances ? (
           <>
@@ -447,37 +572,49 @@ export const FinanceScreen: React.FC = () => {
             return (
               <View key={inv.id} style={styles.invoiceCard}>
                 <View style={styles.invoiceCardHeader}>
-                  <View>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
                     <Text style={styles.invoiceNumText}>{inv.invoiceNumber}</Text>
                     <Text style={styles.invoiceClientText}>{inv.clientName}</Text>
                     <Text style={styles.invoiceProjectText}>{inv.projectTitle}</Text>
                   </View>
-                  <View
-                    style={[
-                      styles.invoiceStatusBadge,
-                      isPaid
-                        ? styles.badgePaid
-                        : isPartiallyPaid
-                        ? styles.badgePartiallyPaid
-                        : isDraft
-                        ? styles.badgeDraft
-                        : styles.badgeSent,
-                    ]}
-                  >
-                    <Text
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    {!isClient && canManageFinances && inv.status !== 'Void' && (
+                      <TouchableOpacity
+                        onPress={() => openEditInvoiceModal(inv.id)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={styles.editIconBtn}
+                        accessibilityLabel={`Edit invoice ${inv.invoiceNumber}`}
+                      >
+                        <Feather name="edit-2" size={15} color={colors.buttonPrimary} />
+                      </TouchableOpacity>
+                    )}
+                    <View
                       style={[
-                        styles.invoiceStatusBadgeText,
+                        styles.invoiceStatusBadge,
                         isPaid
-                          ? styles.textPaid
+                          ? styles.badgePaid
                           : isPartiallyPaid
-                          ? styles.textPartiallyPaid
+                          ? styles.badgePartiallyPaid
                           : isDraft
-                          ? styles.textDraft
-                          : styles.textSent,
+                          ? styles.badgeDraft
+                          : styles.badgeSent,
                       ]}
                     >
-                      {inv.status}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.invoiceStatusBadgeText,
+                          isPaid
+                            ? styles.textPaid
+                            : isPartiallyPaid
+                            ? styles.textPartiallyPaid
+                            : isDraft
+                            ? styles.textDraft
+                            : styles.textSent,
+                        ]}
+                      >
+                        {inv.status}
+                      </Text>
+                    </View>
                   </View>
                 </View>
 
@@ -492,6 +629,20 @@ export const FinanceScreen: React.FC = () => {
                       {money(inv.totalAmount, inv.currency)}
                     </Text>
                   </View>
+
+                  {(!!inv.discount || !!inv.taxAmount || (inv.subtotal !== undefined && inv.subtotal !== inv.totalAmount)) && (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4, marginBottom: 2 }}>
+                      {inv.subtotal !== undefined && inv.subtotal !== inv.totalAmount && (
+                        <Text style={{ fontSize: 11, color: colors.textSecondary }}>Subtotal: {money(inv.subtotal, inv.currency)}</Text>
+                      )}
+                      {!!inv.discount && (
+                        <Text style={{ fontSize: 11, color: '#DC2626', fontWeight: '600' }}>Discount: -{money(inv.discount, inv.currency)}</Text>
+                      )}
+                      {!!inv.taxAmount && (
+                        <Text style={{ fontSize: 11, color: colors.buttonPrimary, fontWeight: '600' }}>Tax{inv.taxRate ? ` (${inv.taxRate}%)` : ''}: +{money(inv.taxAmount, inv.currency)}</Text>
+                      )}
+                    </View>
+                  )}
 
                   {inv.paidAmount > 0 && (
                     <View style={styles.splitRow}>
@@ -508,6 +659,13 @@ export const FinanceScreen: React.FC = () => {
                 {!isClient && canManageFinances && isDraft && (
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                     <TouchableOpacity
+                      style={[styles.recordPaymentBtn, { flex: 1 }]}
+                      onPress={() => openEditInvoiceModal(inv.id)}
+                    >
+                      <Feather name="edit-2" size={14} color={colors.buttonPrimary} />
+                      <Text style={styles.recordPaymentBtnText}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       style={[styles.payProofBtn, { flex: 1.2, backgroundColor: colors.buttonPrimary }]}
                       onPress={() =>
                         Alert.alert(
@@ -521,18 +679,18 @@ export const FinanceScreen: React.FC = () => {
                       }
                     >
                       <Ionicons name="paper-plane-outline" size={16} color={colors.white} />
-                      <Text style={styles.payProofBtnText}>Issue Invoice</Text>
+                      <Text style={styles.payProofBtnText}>Issue</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
                         styles.recordPaymentBtn,
-                        { flex: 1, borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' },
+                        { flex: 0.9, borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' },
                       ]}
                       onPress={() => handleDeleteDraft(inv)}
                     >
                       <Feather name="trash-2" size={14} color="#DC2626" />
                       <Text style={[styles.recordPaymentBtnText, { color: '#DC2626' }]}>
-                        Delete Draft
+                        Delete
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -540,9 +698,16 @@ export const FinanceScreen: React.FC = () => {
 
                 {!isClient && canManageFinances && !isDraft && inv.status !== 'Void' && (
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                    <TouchableOpacity
+                      style={[styles.recordPaymentBtn, { flex: 1 }]}
+                      onPress={() => openEditInvoiceModal(inv.id)}
+                    >
+                      <Feather name="edit-2" size={14} color={colors.buttonPrimary} />
+                      <Text style={styles.recordPaymentBtnText}>Edit</Text>
+                    </TouchableOpacity>
                     {inv.outstandingAmount > 0 && (
                       <TouchableOpacity
-                        style={[styles.recordPaymentBtn, { flex: 1.2 }]}
+                        style={[styles.recordPaymentBtn, { flex: 1.4 }]}
                         onPress={() => handleDirectPayment(inv)}
                       >
                         <Feather name="plus-circle" size={14} color={colors.buttonPrimary} />
@@ -992,6 +1157,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+  },
+  editIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F0FA',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   invoiceNumText: {
     fontFamily: typography.fonts.bold,

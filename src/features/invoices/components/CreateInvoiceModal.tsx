@@ -17,38 +17,61 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import type { Invoice } from '@/types';
+import { DatePickerModal } from '@/components/common/DatePickerModal';
 
-export const CreateInvoiceModal: React.FC = () => {
+interface InvoiceFormInnerProps {
+  isEditing: boolean;
+  editingInvoice: Invoice | null;
+  onClose: () => void;
+}
+
+const InvoiceFormInner: React.FC<InvoiceFormInnerProps> = ({
+  isEditing,
+  editingInvoice,
+  onClose,
+}) => {
   const insets = useSafeAreaInsets();
   const {
-    activeModal,
-    closeModal,
     clients,
     projects,
     addInvoice,
+    updateInvoice,
     currentUser,
     openAddClientModal,
     openCreateProjectModal,
   } = useAppContext();
 
-  const isVisible = activeModal === 'create_invoice';
-
   const [chosenClientId, setSelectedClientId] = useState<string>(
-    clients[0]?.id || ''
+    editingInvoice?.clientId || clients[0]?.id || ''
   );
   const [chosenProjectId, setSelectedProjectId] = useState<string>(
-    projects[0]?.id || ''
+    editingInvoice?.projectId || projects[0]?.id || ''
   );
   const [items, setItems] = useState<
     { id: string; description: string; quantity: string; rate: string }[]
-  >([{ id: 'item_1', description: '', quantity: '1', rate: '' }]);
-  const [dueDate, setDueDate] = useState(() =>
-    dateKey(new Date(Date.now() + 30 * 86400000))
+  >(() =>
+    editingInvoice?.items?.length
+      ? editingInvoice.items.map((it, idx) => ({
+          id: it.id || `item_${idx}_${Date.now()}`,
+          description: it.description || '',
+          quantity: String(it.quantity || 1),
+          rate: String(it.rate || 0),
+        }))
+      : [{ id: 'item_1', description: '', quantity: '1', rate: '' }]
   );
-  const [taxRate, setTaxRate] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [notes, setNotes] = useState('');
+  const [dueDate, setDueDate] = useState(() =>
+    editingInvoice?.dueDate || dateKey(new Date(Date.now() + 30 * 86400000))
+  );
+  const [taxRate, setTaxRate] = useState(() =>
+    editingInvoice?.taxRate ? String(editingInvoice.taxRate) : ''
+  );
+  const [discount, setDiscount] = useState(() =>
+    editingInvoice?.discount ? String(editingInvoice.discount) : ''
+  );
+  const [notes, setNotes] = useState(() => editingInvoice?.notes || '');
   const [error, setError] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const selectedClientId =
     clients.find((c) => c.id === chosenClientId)?.id || clients[0]?.id || '';
@@ -57,6 +80,7 @@ export const CreateInvoiceModal: React.FC = () => {
     clientProjects.find((p) => p.id === chosenProjectId)?.id ||
     clientProjects[0]?.id ||
     '';
+  const selectedClient = clients.find((c) => c.id === selectedClientId) || clients[0];
 
   const handleAddItem = () => {
     setItems((prev) => [
@@ -118,19 +142,53 @@ export const CreateInvoiceModal: React.FC = () => {
       return;
     }
 
+    if (isEditing && editingInvoice) {
+      if (editingInvoice.paidAmount > 0 && total < editingInvoice.paidAmount) {
+        setError(`Total amount cannot be less than already received payments (${money(editingInvoice.paidAmount, editingInvoice.currency)}).`);
+        return;
+      }
+
+      try {
+        updateInvoice(editingInvoice.id, {
+          clientId: selectedClientId,
+          projectId: selectedProjectId,
+          dueDate,
+          items: validItems,
+          subtotal,
+          taxRate: Number(taxRate) || 0,
+          taxAmount,
+          discount: discountAmount || 0,
+          totalAmount: total,
+          notes: notes.trim() || undefined,
+          status: editingInvoice.status === 'Draft' ? status : editingInvoice.status,
+        });
+
+        onClose();
+        Alert.alert('Invoice Updated', `Invoice #${editingInvoice.invoiceNumber} has been updated successfully!`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to update invoice.');
+      }
+      return;
+    }
+
     try {
       const created = addInvoice({
         clientId: selectedClientId,
         projectId: selectedProjectId,
         dueDate,
         items: validItems,
-        taxRate: Number(taxRate) || undefined,
-        discount: Number(discount) || undefined,
+        subtotal,
+        taxRate: Number(taxRate) || 0,
+        taxAmount,
+        discount: discountAmount || 0,
+        totalAmount: total,
+        outstandingAmount: total,
+        currency: currentUser?.currency || 'LKR',
         notes: notes.trim() || undefined,
         status,
       });
 
-      closeModal();
+      onClose();
       setItems([{ id: 'item_1', description: '', quantity: '1', rate: '' }]);
       setTaxRate('');
       setDiscount('');
@@ -142,31 +200,25 @@ export const CreateInvoiceModal: React.FC = () => {
     }
   };
 
-  const selectedClient = clients.find((c) => c.id === selectedClientId) || clients[0];
-
   return (
-    <Modal
-      visible={isVisible}
-      animationType="slide"
-      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
-      onRequestClose={closeModal}
-    >
-      <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
-        <ScreenBackdrop />
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={closeModal}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Feather name="arrow-left" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create invoice</Text>
-          <TouchableOpacity style={styles.headerRight} onPress={closeModal}>
-            <Feather name="x" size={22} color={colors.textPrimary} />
-          </TouchableOpacity>
-        </View>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
+      <ScreenBackdrop />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Feather name="arrow-left" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {isEditing ? `Edit #${editingInvoice?.invoiceNumber || 'Invoice'}` : 'Create invoice'}
+        </Text>
+        <TouchableOpacity style={styles.headerRight} onPress={onClose}>
+          <Feather name="x" size={22} color={colors.textPrimary} />
+        </TouchableOpacity>
+      </View>
 
         <ScrollView
           style={styles.scrollArea}
@@ -182,7 +234,7 @@ export const CreateInvoiceModal: React.FC = () => {
             <TouchableOpacity
               style={styles.emptyNoticeCard}
               onPress={() => {
-                closeModal();
+                onClose();
                 openAddClientModal();
               }}
             >
@@ -231,7 +283,7 @@ export const CreateInvoiceModal: React.FC = () => {
             <TouchableOpacity
               style={styles.emptyNoticeCard}
               onPress={() => {
-                closeModal();
+                onClose();
                 openCreateProjectModal();
               }}
             >
@@ -272,15 +324,17 @@ export const CreateInvoiceModal: React.FC = () => {
 
           {/* Due Date */}
           <Text style={styles.fieldLabel}>Due Date</Text>
-          <View style={styles.inputBox}>
+          <TouchableOpacity
+            style={styles.inputBox}
+            activeOpacity={0.7}
+            onPress={() => setShowDatePicker(true)}
+          >
             <Feather name="calendar" size={16} color={colors.buttonPrimary} />
-            <TextInput
-              style={styles.textInput}
-              value={dueDate}
-              onChangeText={setDueDate}
-              placeholder="YYYY-MM-DD"
-            />
-          </View>
+            <Text style={[styles.textInput, { paddingTop: Platform.OS === 'ios' ? 0 : 2 }]}>
+              {dueDate || 'YYYY-MM-DD'}
+            </Text>
+            <Feather name="chevron-down" size={16} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
+          </TouchableOpacity>
 
           {/* Line Items Section */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
@@ -428,24 +482,69 @@ export const CreateInvoiceModal: React.FC = () => {
             { paddingBottom: Math.max(insets.bottom, 16) },
           ]}
         >
-          <TouchableOpacity
-            style={styles.draftBtn}
-            onPress={() => handleSubmit('Draft')}
-            activeOpacity={0.8}
-          >
-            <Feather name="file-text" size={16} color={colors.textSecondary} />
-            <Text style={styles.draftBtnText}>Save Draft</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.submitBtn}
-            onPress={() => handleSubmit('Sent')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="paper-plane-outline" size={16} color={colors.white} />
-            <Text style={styles.submitBtnText}>Issue Invoice</Text>
-          </TouchableOpacity>
+          {isEditing && editingInvoice?.status !== 'Draft' ? (
+            <TouchableOpacity
+              style={[styles.submitBtn, { flex: 1 }]}
+              onPress={() => handleSubmit(editingInvoice?.status as 'Draft' | 'Sent' || 'Sent')}
+              activeOpacity={0.8}
+            >
+              <Feather name="check" size={16} color={colors.white} />
+              <Text style={styles.submitBtnText}>Save Changes</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.draftBtn}
+                onPress={() => handleSubmit('Draft')}
+                activeOpacity={0.8}
+              >
+                <Feather name="file-text" size={16} color={colors.textSecondary} />
+                <Text style={styles.draftBtnText}>{isEditing ? 'Save Draft' : 'Save Draft'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitBtn}
+                onPress={() => handleSubmit('Sent')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="paper-plane-outline" size={16} color={colors.white} />
+                <Text style={styles.submitBtnText}>{isEditing ? 'Save & Issue' : 'Issue Invoice'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
+
+        <DatePickerModal
+          visible={showDatePicker}
+          onClose={() => setShowDatePicker(false)}
+          onSelectDate={(date) => setDueDate(date)}
+          initialDate={dueDate}
+          title="Select Invoice Due Date"
+        />
       </View>
+    );
+};
+
+export const CreateInvoiceModal: React.FC = () => {
+  const { activeModal, closeModal, invoices, selectedInvoiceId } = useAppContext();
+  const isVisible = activeModal === 'create_invoice' || activeModal === 'edit_invoice';
+  const isEditing = activeModal === 'edit_invoice';
+  const editingInvoice = isEditing ? invoices.find((i) => i.id === selectedInvoiceId) || null : null;
+
+  if (!isVisible) return null;
+
+  return (
+    <Modal
+      visible={isVisible}
+      animationType="slide"
+      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+      onRequestClose={closeModal}
+    >
+      <InvoiceFormInner
+        key={`${activeModal}_${selectedInvoiceId || 'create'}`}
+        isEditing={isEditing}
+        editingInvoice={editingInvoice}
+        onClose={closeModal}
+      />
     </Modal>
   );
 };

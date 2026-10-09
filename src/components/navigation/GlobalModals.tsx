@@ -33,6 +33,7 @@ export const GlobalModals: React.FC = () => {
     case 'clients_directory':
       return <ClientsDirectoryModal />;
     case 'create_invoice':
+    case 'edit_invoice':
       return <CreateInvoiceModal />;
     case 'submit_payment':
       return <SubmitPaymentModal />;

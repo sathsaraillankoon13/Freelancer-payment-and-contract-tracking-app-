@@ -1,5 +1,5 @@
 import { ScreenBackdrop } from '@/components/ui/Surface';
-import { pickAttachment } from '@/services/attachments';
+import { pickAttachment, pickImage } from '@/services/attachments';
 import type { FileAttachment } from '@/types';
 import { MotionTouchable as TouchableOpacity, MotionModal as Modal } from '@/components/ui/Motion';
 import React, { useState } from 'react';
@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -35,7 +36,46 @@ export const SubmitDeliverableModal: React.FC = () => {
   const [deliverableName, setDeliverableName] = useState('');
   const [fileName, setFileName] = useState('');
   const [attachment, setAttachment] = useState<FileAttachment | null>(null);
-  const chooseFile = async () => { try { const file = await pickAttachment(); if (file) { setAttachment(file); setFileName(file.name); setError(''); } } catch (error) { Alert.alert('Unable to select file', error instanceof Error ? error.message : 'Please try again.'); } };
+
+  const chooseFile = () => {
+    Alert.alert(
+      'Upload Deliverable',
+      'Choose the type of asset to attach:',
+      [
+        {
+          text: 'Upload Photos / Image',
+          onPress: async () => {
+            try {
+              const file = await pickImage();
+              if (file) {
+                setAttachment(file);
+                setFileName(file.name);
+                setError('');
+              }
+            } catch (error) {
+              Alert.alert('Unable to select image', error instanceof Error ? error.message : 'Please try again.');
+            }
+          },
+        },
+        {
+          text: 'Upload Document / File (PDF, ZIP)',
+          onPress: async () => {
+            try {
+              const file = await pickAttachment();
+              if (file) {
+                setAttachment(file);
+                setFileName(file.name);
+                setError('');
+              }
+            } catch (error) {
+              Alert.alert('Unable to select file', error instanceof Error ? error.message : 'Please try again.');
+            }
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
   const [version, setVersion] = useState('v1');
   const [authorNote, setAuthorNote] = useState('');
   const [error, setError] = useState('');
@@ -131,11 +171,18 @@ export const SubmitDeliverableModal: React.FC = () => {
               File Attachment <Text style={styles.asterisk}>*</Text>
             </Text>
             <TouchableOpacity onPress={chooseFile} style={styles.filePickerBox} activeOpacity={0.7}>
-              <MaterialCommunityIcons
-                name={attachment ? 'file-check-outline' : 'paperclip'}
-                size={20}
-                color={attachment ? colors.buttonPrimary : colors.textMuted}
-              />
+              {attachment && (attachment.mimeType?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(attachment.name)) ? (
+                <Image
+                  source={{ uri: attachment.uri }}
+                  style={{ width: 28, height: 28, borderRadius: 6, marginRight: 4 }}
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name={attachment ? 'file-check-outline' : 'paperclip'}
+                  size={20}
+                  color={attachment ? colors.buttonPrimary : colors.textMuted}
+                />
+              )}
               <Text
                 style={[
                   styles.filePickerText,
@@ -143,7 +190,7 @@ export const SubmitDeliverableModal: React.FC = () => {
                 ]}
                 numberOfLines={1}
               >
-                {attachment ? fileName : 'Choose deliverable file · up to 20 MB'}
+                {attachment ? fileName : 'Choose image or file · up to 20 MB'}
               </Text>
               <Feather name="upload-cloud" size={16} color={colors.buttonPrimary} />
             </TouchableOpacity>

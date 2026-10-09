@@ -277,23 +277,31 @@ export function generateContractHtml(
 export async function exportContractPdf(
   project: Project,
   signerName: string,
-  providerName?: string
+  providerName?: string,
+  mode: 'share' | 'print' = 'share'
 ): Promise<void> {
   const html = generateContractHtml(project, signerName, providerName);
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === 'web' || mode === 'print') {
     await Print.printAsync({ html });
     return;
   }
 
-  if (!(await Sharing.isAvailableAsync())) {
-    throw new Error('PDF sharing is not available on this device.');
+  try {
+    const isAvailable = await Sharing.isAvailableAsync();
+    if (isAvailable) {
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        UTI: '.pdf',
+        dialogTitle: `Contract - ${project.title}.pdf`,
+      });
+      return;
+    }
+  } catch (err) {
+    console.warn('[exportContractPdf] Sharing failed, falling back to Print:', err);
   }
 
-  const { uri } = await Print.printToFileAsync({ html });
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/pdf',
-    UTI: '.pdf',
-    dialogTitle: `Contract - ${project.title}`,
-  });
+  // Fallback to native print / Save as PDF
+  await Print.printAsync({ html });
 }

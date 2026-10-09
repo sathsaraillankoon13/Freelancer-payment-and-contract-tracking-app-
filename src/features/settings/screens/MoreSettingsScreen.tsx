@@ -66,7 +66,7 @@ export const MoreSettingsScreen: React.FC = () => {
   const handleShowTerms = () => {
     Alert.alert(
       'Terms & Conditions',
-      'ISAACIFY CRM Manager Client & Service Provider Terms.\n\nAll invoices, deliverables, and milestone agreements are strictly managed between the respective provider and authorized client.\nVersion 1.0.0.',
+      'ISAACIFY Freelancer App Client & Service Provider Terms.\n\nAll invoices, deliverables, and milestone agreements are strictly managed between the respective provider and authorized client.\nVersion 1.0.0.',
       [{ text: 'Close' }]
     );
   };
@@ -526,6 +526,11 @@ export const MoreSettingsScreen: React.FC = () => {
             </View>
             <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
+
+          <View style={styles.menuItem}>
+            <Text style={styles.infoLabel}>Product</Text>
+            <Text style={styles.infoValue}>ISAACIFY Freelancer App</Text>
+          </View>
 
           <View style={[styles.menuItem, { borderBottomWidth: 0 }]}>
             <Text style={styles.infoLabel}>App Version</Text>

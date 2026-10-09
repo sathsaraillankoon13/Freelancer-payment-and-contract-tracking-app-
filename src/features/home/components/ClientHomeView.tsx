@@ -28,9 +28,11 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
   const {
     currentUser,
     projects,
+    deliverables,
+    invoices,
+    meetings,
     financialSummary,
     activeMeeting,
-    deliverable,
     recentActivity,
     openReviewDeliverableModal,
     openMessagesThreadModal,
@@ -39,16 +41,25 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
   } = useAppContext();
 
   const activeProject = projects[0];
+  const pendingDeliverable = deliverables.find((d) => d.status === 'action_required');
+  const latestInvoice = invoices[0];
 
   const handleReviewDeliverable = () => {
-    openReviewDeliverableModal(deliverable.id);
+    if (pendingDeliverable) {
+      openReviewDeliverableModal(pendingDeliverable.id);
+    }
   };
 
   const handleMessageAgency = () => {
-    openMessagesThreadModal('cl_senuri');
+    if (activeProject) {
+      openMessagesThreadModal(activeProject.clientId || activeProject.id);
+    } else {
+      router.push('/messages');
+    }
   };
 
   const handleViewMeeting = () => {
+    if (!activeMeeting) return;
     Alert.alert(
       'Meeting Details',
       `Google Meet link for ${activeMeeting.title}\nTime: ${activeMeeting.timeText}\nParticipants: ${activeMeeting.participants}`,
@@ -57,7 +68,9 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
   };
 
   const handleViewInvoice = () => {
-    openSubmitPaymentModal('inv_2026_014');
+    if (latestInvoice) {
+      openSubmitPaymentModal(latestInvoice.id);
+    }
   };
 
   const handleDownloadFile = (fileName: string) => {
@@ -90,10 +103,14 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
 
         <View style={styles.agencyInfo}>
           <View style={styles.agencyTitleRow}>
-            <Text style={styles.agencyName}>ISAACIFY Creative</Text>
+            <Text style={styles.agencyName}>
+              {activeProject ? activeProject.title : 'ISAACIFY Freelancer Hub'}
+            </Text>
             <MaterialIcons name="verified" size={16} color={colors.buttonPrimary} />
           </View>
-          <Text style={styles.agencyLead}>Design Agency • Lead: Kasun</Text>
+          <Text style={styles.agencyLead}>
+            {activeProject ? `Assigned Workspace • Due ${activeProject.dueDate}` : 'Freelancer Workspace'}
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -112,18 +129,24 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
             <Feather name="layers" size={18} color={colors.buttonPrimary} />
           </View>
           <View style={styles.metricTextWrapper}>
-            <Text style={styles.metricNumber}>1</Text>
-            <Text style={styles.metricLabel}>Active project</Text>
+            <Text style={styles.metricNumber}>{projects.length}</Text>
+            <Text style={styles.metricLabel}>
+              {projects.length === 1 ? 'Active project' : 'Active projects'}
+            </Text>
           </View>
         </View>
 
         <View style={styles.metricCard}>
           <View style={[styles.metricIconCircle, { position: 'relative' }]}>
             <Feather name="file-text" size={18} color={colors.buttonPrimary} />
-            <View style={styles.metricRedDot} />
+            {deliverables.some((d) => d.status === 'action_required') && (
+              <View style={styles.metricRedDot} />
+            )}
           </View>
           <View style={styles.metricTextWrapper}>
-            <Text style={styles.metricNumber}>1</Text>
+            <Text style={styles.metricNumber}>
+              {deliverables.filter((d) => d.status === 'action_required').length}
+            </Text>
             <Text style={styles.metricLabel}>Awaiting review</Text>
           </View>
         </View>
@@ -185,47 +208,49 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
       </ScrollView>
 
       {/* Action Required Banner */}
-      <View style={styles.actionBanner}>
-        <View style={styles.actionBannerTopRow}>
-          <View style={styles.actionRequiredBadge}>
-            <View style={styles.actionRedDot} />
-            <Text style={styles.actionRequiredText}>ACTION REQUIRED</Text>
+      {pendingDeliverable && (
+        <View style={styles.actionBanner}>
+          <View style={styles.actionBannerTopRow}>
+            <View style={styles.actionRequiredBadge}>
+              <View style={styles.actionRedDot} />
+              <Text style={styles.actionRequiredText}>ACTION REQUIRED</Text>
+            </View>
+            <Text style={styles.actionTimestampText}>{pendingDeliverable.submittedText || 'Submitted'}</Text>
           </View>
-          <Text style={styles.actionTimestampText}>{deliverable.submittedText}</Text>
+
+          <Text style={styles.actionTitle}>Your deliverable is ready to review</Text>
+          <Text style={styles.actionSubtitle}>
+            {pendingDeliverable.projectTitle} • {pendingDeliverable.deliverableName}
+          </Text>
+
+          {/* Attachment Card */}
+          <View style={styles.attachmentCard}>
+            <View style={styles.attachmentThumbnail}>
+              <Feather name="image" size={18} color={colors.buttonPrimary} />
+            </View>
+            <View style={styles.attachmentInfo}>
+              <Text style={styles.attachmentFileName} numberOfLines={1}>
+                {pendingDeliverable.fileName}
+              </Text>
+              <Text style={styles.attachmentAuthorNote} numberOfLines={1}>
+                {pendingDeliverable.author}: “{pendingDeliverable.authorNote || 'Ready for review'}”
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.reviewButton}
+            activeOpacity={0.85}
+            onPress={handleReviewDeliverable}
+          >
+            <Text style={styles.reviewButtonText}>Review deliverable</Text>
+            <Feather name="arrow-right" size={16} color={colors.white} style={styles.buttonArrow} />
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.actionTitle}>Your homepage is ready to review</Text>
-        <Text style={styles.actionSubtitle}>
-          {deliverable.projectTitle} • {deliverable.deliverableName}
-        </Text>
-
-        {/* Attachment Card */}
-        <View style={styles.attachmentCard}>
-          <View style={styles.attachmentThumbnail}>
-            <Feather name="image" size={18} color={colors.buttonPrimary} />
-          </View>
-          <View style={styles.attachmentInfo}>
-            <Text style={styles.attachmentFileName} numberOfLines={1}>
-              {deliverable.fileName}
-            </Text>
-            <Text style={styles.attachmentAuthorNote} numberOfLines={1}>
-              {deliverable.author}: “{deliverable.authorNote}”
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={styles.reviewButton}
-          activeOpacity={0.85}
-          onPress={handleReviewDeliverable}
-        >
-          <Text style={styles.reviewButtonText}>Review deliverable</Text>
-          <Feather name="arrow-right" size={16} color={colors.white} style={styles.buttonArrow} />
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Active Project Card */}
-      {activeProject && (
+      {activeProject ? (
         <TouchableOpacity
           style={styles.activeProjectCard}
           activeOpacity={0.85}
@@ -274,7 +299,7 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
               <Feather name="clock" size={14} color={colors.buttonPrimary} />
               <View style={styles.projectMetaTexts}>
                 <Text style={styles.metaSubLabel}>Remaining</Text>
-                <Text style={styles.metaSubValue}>14 days left</Text>
+                <Text style={styles.metaSubValue}>{activeProject.daysLeftText || 'On schedule'}</Text>
               </View>
             </View>
           </View>
@@ -291,46 +316,53 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
             </View>
           </View>
         </TouchableOpacity>
+      ) : (
+        <View style={[styles.activeProjectCard, { alignItems: 'center', justifyContent: 'center', paddingVertical: 24 }]}>
+          <Feather name="folder" size={32} color={colors.buttonPrimary} style={{ marginBottom: 8 }} />
+          <Text style={[styles.projectTitleText, { textAlign: 'center', marginBottom: 4 }]}>No projects assigned yet</Text>
+          <Text style={{ fontFamily: typography.fonts.regular, fontSize: 13, color: colors.textSecondary, textAlign: 'center' }}>
+            Your freelancer or agency will assign your project once onboarding begins.
+          </Text>
+        </View>
       )}
 
       {/* Meeting Card */}
-      <View style={styles.meetingCard}>
-        <View style={styles.meetingTopRow}>
-          <View style={styles.meetingCameraBox}>
-            <Feather name="video" size={20} color={colors.white} />
+      {meetings.length > 0 && activeMeeting && (
+        <View style={styles.meetingCard}>
+          <View style={styles.meetingTopRow}>
+            <View style={styles.meetingCameraBox}>
+              <Feather name="video" size={20} color={colors.white} />
+            </View>
+
+            <View style={styles.meetingInfoBox}>
+              <Text style={styles.meetingName}>{activeMeeting.title}</Text>
+              <Text style={styles.meetingTime}>{activeMeeting.timeText}</Text>
+            </View>
+
+            <View style={styles.googleMeetBadge}>
+              <Text style={styles.googleMeetText}>Google Meet</Text>
+            </View>
           </View>
 
-          <View style={styles.meetingInfoBox}>
-            <Text style={styles.meetingName}>CeylonBites Review Call</Text>
-            <Text style={styles.meetingTime}>Today, 2:30 PM • 30 min</Text>
-          </View>
+          <View style={styles.meetingFooterRow}>
+            <View style={styles.participantsRow}>
+              <View style={[styles.avatarCircle, { backgroundColor: '#E9D5FF' }]}>
+                <Text style={styles.avatarCircleText}>PR</Text>
+              </View>
+              <Text style={styles.participantsNamesText}>{activeMeeting.participants || 'Workspace Call'}</Text>
+            </View>
 
-          <View style={styles.googleMeetBadge}>
-            <Text style={styles.googleMeetText}>Google Meet</Text>
+            <TouchableOpacity
+              style={styles.viewMeetingButton}
+              activeOpacity={0.8}
+              onPress={handleViewMeeting}
+            >
+              <Text style={styles.viewMeetingText}>View meeting</Text>
+              <Feather name="external-link" size={13} color={colors.buttonPrimary} style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.meetingFooterRow}>
-          <View style={styles.participantsRow}>
-            <View style={[styles.avatarCircle, { backgroundColor: '#E9D5FF' }]}>
-              <Text style={styles.avatarCircleText}>KF</Text>
-            </View>
-            <View style={[styles.avatarCircle, { backgroundColor: '#FED7AA', marginLeft: -8 }]}>
-              <Text style={styles.avatarCircleText}>SP</Text>
-            </View>
-            <Text style={styles.participantsNamesText}>Kasun &amp; Senuri</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.viewMeetingButton}
-            activeOpacity={0.8}
-            onPress={handleViewMeeting}
-          >
-            <Text style={styles.viewMeetingText}>View meeting</Text>
-            <Feather name="external-link" size={13} color={colors.buttonPrimary} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      )}
 
       {/* Invoice & Balance Card */}
       <View style={styles.invoiceCard}>
@@ -339,7 +371,9 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
             <Feather name="file-text" size={16} color={colors.textPrimary} />
             <Text style={styles.invoiceTitle}>Invoice &amp; Balance</Text>
           </View>
-          <Text style={styles.invoiceNumber}>INV-2026-014</Text>
+          <Text style={styles.invoiceNumber}>
+            {latestInvoice ? latestInvoice.invoiceNumber : 'No Active Invoices'}
+          </Text>
         </View>
 
         {/* Inner grey surface */}
@@ -364,23 +398,30 @@ export const ClientHomeView: React.FC<ClientHomeViewProps> = ({
             <View
               style={[
                 styles.invoiceProgressFill,
-                { width: '40%' },
+                {
+                  width:
+                    financialSummary.total > 0
+                      ? `${Math.min(100, Math.round((financialSummary.received / financialSummary.total) * 100))}%`
+                      : '0%',
+                },
               ]}
             />
           </View>
         </View>
 
-        <View style={styles.invoiceFooterRow}>
-          <Text style={styles.invoiceDueDate}>Due date: 30 Sep 2026</Text>
-          <TouchableOpacity
-            style={styles.viewInvoiceButton}
-            activeOpacity={0.8}
-            onPress={handleViewInvoice}
-          >
-            <Feather name="file-text" size={13} color={colors.buttonPrimary} style={{ marginRight: 5 }} />
-            <Text style={styles.viewInvoiceText}>View invoice</Text>
-          </TouchableOpacity>
-        </View>
+        {latestInvoice && (
+          <View style={styles.invoiceFooterRow}>
+            <Text style={styles.invoiceDueDate}>Due date: {latestInvoice.dueDate}</Text>
+            <TouchableOpacity
+              style={styles.viewInvoiceButton}
+              activeOpacity={0.8}
+              onPress={handleViewInvoice}
+            >
+              <Feather name="file-text" size={13} color={colors.buttonPrimary} style={{ marginRight: 5 }} />
+              <Text style={styles.viewInvoiceText}>View invoice</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Recent Activity */}
